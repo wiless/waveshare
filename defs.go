@@ -4,6 +4,7 @@ package waveshare
 import (
 	"flag"
 	"image"
+	"image/color"
 	"log"
 	"strconv"
 	"time"
@@ -320,13 +321,15 @@ func (e *EPD) SetFrame(img image.Gray, x0, y0 byte) {
 }
 
 //Image2Byte assumes binary image of size R*C = R*(C/8)
-func Image2Byte(img *image.Gray) [][]byte {
+func Mono2ByteImage(img *image.Gray) (byteimg image.Gray) {
+
 	R := img.Rect.Dy()
 	C := img.Rect.Dy()
 	CC := C / 8 // 8pixels per byte
-	glog.Info("Image2Byte ", C, CC)
-	return [][]byte{}
-	result := make([][]byte, R, CC)
+	glog.Infoln("Image2Byte (pixw,byte) ", C, "  :  ", CC)
+
+	epdimg := image.NewGray(image.Rect(0, 0, R, CC))
+	var cg color.Gray
 	var bitstr string
 	for r := 0; r < R; r++ {
 		bc := 0
@@ -341,13 +344,15 @@ func Image2Byte(img *image.Gray) [][]byte {
 			if len(bitstr) == 8 {
 				val, e := strconv.ParseUint(bitstr, 2, 8)
 				logme("Image2Byte", e)
-				result[r][bc] = byte(val)
+
+				cg.Y = byte(val)
+				epdimg.SetGray(r, bc, cg)
 				bc++
 				bitstr = ""
 			}
 		}
 	}
-	return result
+	return *epdimg
 }
 
 func logme(info string, e error) {
