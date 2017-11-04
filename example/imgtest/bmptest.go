@@ -10,14 +10,29 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/kidoman/embd"
 	"github.com/lucasb-eyer/go-colorful"
 
 	"golang.org/x/image/bmp"
 )
+/// SPI related functions
+var spibus embd.SPIBus
+
+const (
+	channel = 0
+	speed   = 2000000
+	bpw     = 8
+	delay   = 0
+)
 
 func main() {
 	fmt.Printf("bmp tools")
-	LoadImage("foodklubbw.jpg", "IMAGE_DATA")
+//	LoadImage("foodklubbw.jpg", "IMAGE_DATA")
+
+	if err := embd.InitSPI(); err != nil {
+		log.Println("Unable to Init SPI ", err)
+	}
+	spibus = embd.NewSPIBus(embd.SPIMode0, channel, speed, bpw, delay)
 
 }
 

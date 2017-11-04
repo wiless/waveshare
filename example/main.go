@@ -4,7 +4,7 @@ import (
 	"image"
 	"image/color"
 	"os"
-
+"log"
 	"github.com/lucasb-eyer/go-colorful"
 
 	"github.com/llgcode/draw2d/draw2dimg"
@@ -21,18 +21,24 @@ var mono = true
 func main() {
 	waveshare.InitHW()
 	var epd waveshare.EPD
-	epd.SetDefaults()
 	epd.Init(true)
 
-	epdimg := ImageGenerate()
-	epd.ClearFrame(0xff)
-	epd.SetFrame(epdimg, 0, 0)
+//	epdimg := ImageGenerate()
+	epdimg:=waveshare.LoadImage("kavishbw.jpg")
+	log.Println("Image is ",epdimg)	
+	epd.ClearFrame(0x00)
+	epd.SetFrame(*epdimg, 0, 0)
+
+//	epd.WriteBytePixel(56,64,0x00,0Xaa,0x00)
+
+
 	epd.DisplayFrame()
 
+	epd.Sleep(true)
 }
 
 func ImageGenerate() (epdimg image.Gray) {
-	// img := image.NewGray(image.Rect(0, 0, 200, 210))
+
 	img := image.NewRGBA(image.Rect(0, 0, 200, 200))
 
 	gc := draw2dimg.NewGraphicContext(img)
@@ -53,7 +59,7 @@ func ImageGenerate() (epdimg image.Gray) {
 
 	for r := 0; r < b.Max.Y; r++ {
 		for c := 0; c < b.Max.X; c++ {
-			oldPixel := img.At(r, c)
+			oldPixel := img.At(c, r)
 
 			// gscale, _, _, _ := color.GrayModel.Convert(oldPixel).RGBA()
 			cg = color.GrayModel.Convert(oldPixel).(color.Gray)
@@ -61,13 +67,13 @@ func ImageGenerate() (epdimg image.Gray) {
 			// convert to monochrome
 			if mono {
 				if cg.Y > 0 {
-					cg.Y = 255
+					cg.Y = 0
 				} else {
 					cg.Y = 0
 				}
 
 			}
-			gimg.SetGray(r, c, cg)
+			gimg.SetGray(c, r, cg)
 
 		}
 	}

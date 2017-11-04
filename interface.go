@@ -5,6 +5,10 @@ import (
 	"log"
 
 	"github.com/kidoman/embd"
+	_ "github.com/kidoman/embd/host/rpi"
+	_ "github.com/kidoman/embd/host/all"
+
+
 )
 
 // # Pin definition
