@@ -87,6 +87,9 @@ func (e *EPD) CallFunction(command byte, data ...byte) {
 }
 
 func (e *EPD) Init(full bool) {
+	if len(e.lutFullUpdate) == 0 || len(e.lutPartialUpdate) == 0 {
+		epd.SetDefaults()
+	}
 
 	var dataseq []byte
 	e.lutFull = full

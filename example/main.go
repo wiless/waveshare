@@ -21,6 +21,7 @@ var mono = true
 func main() {
 	waveshare.InitHW()
 	var epd waveshare.EPD
+	epd.SetDefaults()
 	epd.Init(true)
 
 	epdimg := ImageGenerate()
