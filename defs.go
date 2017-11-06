@@ -1,9 +1,9 @@
-// functions related to communication, commands protocols for the EPD
+// Package waveshare implements functions  to communication, commands protocols for the EPD
 package waveshare
 
 import (
 	"flag"
-"fmt"
+	"fmt"
 	"image"
 	"image/color"
 	"log"
@@ -11,9 +11,8 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	_ "github.com/kidoman/embd/host/rpi"
-
 	"github.com/kidoman/embd"
+	// "github.com/kidoman/embd"
 )
 
 // # Display resolution
@@ -70,17 +69,14 @@ func (e *EPD) SetDefaults() {
 	e.lutFull = true
 }
 
-func (e *EPD) SendCommand(command byte) {
+func (e *EPD) SendCommand(cmd byte) {
 
-	embd.DigitalWrite(DC_PIN, embd.Low)
-	spibus.Write([]byte{command})
+	writeCmd(cmd)
 
 }
 
 func (e *EPD) SendData(data ...byte) {
-	embd.DigitalWrite(DC_PIN, embd.High)
-	spibus.Write(data)
-
+	writeData(data...)
 }
 
 func (e *EPD) CallFunction(command byte, data ...byte) {
@@ -215,15 +211,11 @@ func (e *EPD) SetXY(x, y byte) {
 //  #          this won't update the display.
 func (e *EPD) ClearFrame(color byte) {
 	e.setMemArea(0, 0, EPD_WIDTH-1, EPD_HEIGHT-1)
-//	e.setMemArea(0, 0, 200,200)
+	//	e.setMemArea(0, 0, 200,200)
 	e.SetXY(0, 0)
 	e.CallFunction(WRITE_RAM)
 
 	L := int((EPD_WIDTH / 8)) * int(EPD_HEIGHT) // 8pixels cols = 1 byte
-
-
-	
-
 
 	for i := 0; i < L; i++ {
 		e.SendData(color)
@@ -238,6 +230,42 @@ func (e *EPD) GetFrame() *image.Gray {
 	img := image.NewGray(image.Rect(0, 0, int(EPD_WIDTH), int(EPD_HEIGHT)))
 
 	return img
+}
+
+// SetSubFrame sets subset of image at r,c location, assume r,c=8n , column is multiple of 8
+func (e *EPD) SetSubFrame(r, c int, binimg image.Gray) {
+	W, H := binimg.Bounds().Dx(), binimg.Bounds().Dx()
+	if W > 200 || H > 200 {
+		return
+	}
+	ww := binimg.Bounds().Dx()
+	hh := binimg.Bounds().Dy()
+
+	if c+ww > 200 {
+		ww = 200 - c
+	}
+	if r+hh > 200 {
+		hh = 200 - r
+	}
+
+	subimg := binimg.SubImage(image.Rect(0, 0, ww, hh)).(*image.Gray)
+	byteimg := Mono2ByteImage(subimg)
+	BW := byteimg.Bounds().Dx()
+
+	for row := 0; row < hh; row++ {
+		e.SetXY(byte(c), byte(row+r))
+		e.SendCommand(WRITE_RAM)
+
+		bytearray := make([]byte, BW)
+		for col := 0; col < BW; col++ {
+			pixel := byteimg.GrayAt(row, col).Y
+			//			pixel := 0X80
+			bytearray[col] = byte(pixel)
+		}
+		e.SendData(bytearray...)
+		e.wait()
+	}
+
 }
 
 // buf = [0x00] * (self.width * self.height / 8)
@@ -257,15 +285,13 @@ func (e *EPD) GetFrame() *image.Gray {
 //             buf[(x + y * self.width) / 8] |= 0x80 >> (x % 8)
 // return buf
 
-//  ##
 //  #  @brief: put an (SUB) image to the frame memory.
 //  #          this won't update the display.
-//  ##    def set_frame_memory(self, image, x, y):
-func (e *EPD) SetFrame(byteimg image.Gray, x0, y0 byte) {
+func (e *EPD) SetFrame(byteimg image.Gray) {
 	h, w := byte(byteimg.Bounds().Dx()), byte(byteimg.Bounds().Dy())
-
+	x0 := uint8(0)
+	y0 := uint8(0)
 	var x1, y1 byte
-	x0 = x0 & 0xF8
 	x1 = x0 + (w) - 1
 	y1 = y0 + (h) - 1
 	if x0+w >= EPD_WIDTH {
@@ -275,37 +301,31 @@ func (e *EPD) SetFrame(byteimg image.Gray, x0, y0 byte) {
 		y1 = EPD_HEIGHT - 1
 	}
 
-	e.setMemArea(0,0, 200,200)
+	e.setMemArea(0, 0, 200, 200)
 
 	// # send the image data
 
 	rr := int(y1 - y0 + 1)
 	cc := int(x1 - x0 + 1)
-	fmt.Println(rr,cc," OUTPUT ")
+	fmt.Println(rr, cc, " OUTPUT ")
 
 	for row := 0; row < 200; row++ {
-		bytearray:=make([]byte,25)
+		bytearray := make([]byte, 25)
 		e.SetXY(0, byte(row))
 		e.SendCommand(WRITE_RAM)
 		for col := 0; col < 25; col++ {
-		pixel := byteimg.GrayAt(row,col).Y
-	if pixel>0 {
-	log.Println("HI kavish i found something >0 ",pixel)
-		fmt.Printf("\n %d,%d = %08b",row,col,pixel)
-}
-
-//			pixel := 0X80			
-			bytearray[col]=byte(pixel) 
+			pixel := byteimg.GrayAt(row, col).Y
+			//			pixel := 0X80
+			bytearray[col] = byte(pixel)
 		}
-			e.SendData(bytearray...)
-	e.wait()
+		e.SendData(bytearray...)
+		e.wait()
 	}
 
 }
 
-
-func (e *EPD) WriteBytePixel(row,col byte,pixel ...byte) {
-	e.SetXY(row,col)
+func (e *EPD) WriteBytePixel(row, col byte, pixel ...byte) {
+	e.SetXY(row, col)
 	e.SendCommand(WRITE_RAM)
 	e.SendData(pixel...)
 	e.wait()
@@ -335,10 +355,10 @@ func Mono2ByteImage(img *image.Gray) (byteimg image.Gray) {
 
 			if len(bitstr) == 8 {
 				val, e := strconv.ParseUint(bitstr, 2, 8)
-if e!=nil {
-log.Println(" Some error e = ",e)
-}
-				fmt.Println("Image2Byte : ",val)
+				if e != nil {
+					log.Println(" Some error e = ", e)
+				}
+				fmt.Println("Image2Byte : ", val)
 
 				cg.Y = byte(val)
 
