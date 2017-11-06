@@ -5,6 +5,8 @@ import (
 	"image/color"
 	"os"
 
+	"github.com/llgcode/draw2d"
+
 	"github.com/lucasb-eyer/go-colorful"
 
 	"github.com/llgcode/draw2d/draw2dimg"
@@ -21,6 +23,7 @@ var epd waveshare.EPD
 
 func main() {
 	waveshare.InitHW()
+	draw2d.SetFontFolder(".")
 
 	epdimg := ImageGenerate()
 	UpdateImage(epdimg)
@@ -64,15 +67,16 @@ func ImageGenerate() (epdimg image.Gray) {
 	img := image.NewRGBA(image.Rect(0, 0, 200, 200))
 
 	gc := draw2dimg.NewGraphicContext(img)
-	gc.SetFillColor(color.Black)
-	red, _ := colorful.Hex("#ff0000")
+	gc.SetFillColor(color.White)
+	red, _ := colorful.Hex("#000000")
 	gc.SetStrokeColor(red)
 	gc.MoveTo(0, 0)
 	gc.LineTo(150, 105)
 	gc.QuadCurveTo(100, 20, 50, 20)
-	gc.StrokeStringAt("Hello Sendil", 0, 0)
+	gc.StrokeStringAt("Hello Sendil", 10, 10)
+
 	gc.Close()
-	gc.FillStroke()
+	gc.Stroke()
 	draw2dimg.SaveToPngFile("hello.png", img)
 	/// grayimage
 	b := img.Bounds()

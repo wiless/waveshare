@@ -10,9 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/kidoman/embd"
-	// "github.com/kidoman/embd"
 )
 
 // # Display resolution
@@ -338,7 +336,7 @@ func Mono2ByteImage(img *image.Gray) (byteimg image.Gray) {
 	R := img.Rect.Dy()
 	C := img.Rect.Dx()
 	CC := C / 8 // 8pixels per byte
-	glog.Infoln("Image2Byte (pixw,byte) ", C, "  :  ", CC)
+	// glog.Infoln("Image2Byte (pixw,byte) ", C, "  :  ", CC)
 
 	epdimg := image.NewGray(image.Rect(0, 0, R, CC))
 	var cg color.Gray
@@ -358,7 +356,7 @@ func Mono2ByteImage(img *image.Gray) (byteimg image.Gray) {
 				if e != nil {
 					log.Println(" Some error e = ", e)
 				}
-				fmt.Println("Image2Byte : ", val)
+				// fmt.Println("Image2Byte : ", val)
 
 				cg.Y = byte(val)
 

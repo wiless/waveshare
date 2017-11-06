@@ -56,7 +56,7 @@ func writeCmd(cmd byte) {
 	spibus.Write([]byte{cmd})
 }
 
-func writeData(data byte) {
+func writeData(data ...byte) {
 	embd.DigitalWrite(DC_PIN, embd.High)
 	spibus.Write(data)
 
