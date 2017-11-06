@@ -33,6 +33,8 @@ func UpdateImage(epdimg image.Gray) {
 	epd.ClearFrame(0xff)
 	epd.SetFrame(epdimg)
 	epd.DisplayFrame()
+	epd.SetFrame(epdimg)
+	epd.DisplayFrame()
 }
 
 func PartialUpdate(img image.Gray, x, y uint8) {
