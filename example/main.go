@@ -17,17 +17,18 @@ import (
 )
 
 var mono = true
+var epd waveshare.EPD
 
 func main() {
 	waveshare.InitHW()
-	var epd waveshare.EPD
+
 	epdimg := ImageGenerate()
 	UpdateImage(epdimg)
 }
 func UpdateImage(epdimg image.Gray) {
 	epd.Init(true)
 	epd.ClearFrame(0xff)
-	epd.SetFrame(epdimg, 0, 0)
+	epd.SetFrame(epdimg)
 	epd.DisplayFrame()
 }
 
