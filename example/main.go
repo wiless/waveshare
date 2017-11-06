@@ -33,6 +33,7 @@ func UpdateImage(epdimg image.Gray) {
 	epd.ClearFrame(0xff)
 	epd.SetFrame(epdimg)
 	epd.DisplayFrame()
+	epd.ClearFrame(0xff)
 	epd.SetFrame(epdimg)
 	epd.DisplayFrame()
 }
