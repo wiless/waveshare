@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"os"
+	"time"
 
 	"github.com/llgcode/draw2d"
 
@@ -34,9 +35,9 @@ func UpdateImage(epdimg image.Gray) {
 	epd.ClearFrame(0xff)
 	epd.SetFrame(epdimg)
 	epd.DisplayFrame()
-	epd.ClearFrame(0xff)
-	epd.SetFrame(epdimg)
-	epd.DisplayFrame()
+	// epd.ClearFrame(0xff)
+	// epd.SetFrame(epdimg)
+	// epd.DisplayFrame()
 }
 
 func PartialUpdate(img image.Gray, x, y uint8) {
@@ -115,8 +116,12 @@ func ImageGenerate() (epdimg image.Gray) {
 	// gc.FillStroke()
 	gc.SetFontSize(20)
 	gc.SetLineWidth(4)
-	gc.StrokeStringAt("4 NOV 2017", 0, 170)
+	datestr := time.Now().Format(time.Stamp)
+	gc.StrokeStringAt(datestr, 0, 170)
 	gc.FillStroke()
+	gc.Save()
+
+	gc.Save()
 	gc.Close()
 	draw2dimg.SaveToPngFile("hello.png", img)
 
@@ -151,6 +156,9 @@ func ImageGenerate() (epdimg image.Gray) {
 
 		}
 	}
+	///
+
+	////
 
 	epdimg = waveshare.Mono2ByteImage(gimg)
 
