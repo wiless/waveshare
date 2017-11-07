@@ -7,13 +7,14 @@ import (
 
 	"github.com/llgcode/draw2d"
 
-	"github.com/lucasb-eyer/go-colorful"
-
 	"github.com/llgcode/draw2d/draw2dimg"
+	"github.com/llgcode/draw2d/draw2dkit"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/golang/glog"
 
 	"golang.org/x/image/bmp"
+	"golang.org/x/image/font/gofont/goregular"
 
 	"github.com/wiless/waveshare"
 )
@@ -68,25 +69,68 @@ func PartialUpdate(img image.Gray, x, y uint8) {
 func ImageGenerate() (epdimg image.Gray) {
 	// img := image.NewGray(image.Rect(0, 0, 200, 210))
 	img := image.NewRGBA(image.Rect(0, 0, 200, 200))
+	// for r := 0; r < 200; r++ {
+	// 	for c := 0; c < 200; c++ {
+	// 		img.Set(r, c, color.White)
+	// 	}
+	// }
 
 	gc := draw2dimg.NewGraphicContext(img)
-	gc.SetFillColor(color.White)
-	red, _ := colorful.Hex("#000000")
-	gc.SetStrokeColor(red)
-	gc.MoveTo(0, 0)
-	gc.LineTo(150, 105)
-	gc.QuadCurveTo(100, 20, 50, 20)
-	gc.StrokeStringAt("Hello Sendil", 10, 10)
+	gc.ClearRect(0, 0, 200, 200)
 
-	gc.Close()
+	gc.Save()
+	gc.SetStrokeColor(color.Black)
+	gc.SetFillColor(color.Black)
+	gc.SetLineWidth(2)
+	draw2dkit.Rectangle(gc, 30, 30, 100, 100)
 	gc.Stroke()
+	gc.Save()
+
+	gc.SetStrokeColor(color.Black)
+	gc.SetFillColor(color.White)
+	gc.SetLineWidth(4)
+	draw2dkit.Circle(gc, 100, 100, 30)
+	gc.FillStroke()
+
+	draw2dkit.RoundedRectangle(gc, 105, 105, 180, 180, 10, 10)
+	gc.Stroke()
+
+	gc.SetFillColor(color.Black)
+
+	gc.SetStrokeColor(color.Black)
+	// gc.Close()
+	// gc.Restore()
+	// gc.SetFillColor(color.Black)
+	font, _ := truetype.Parse(goregular.TTF)
+	// font, _ := truetype.Parse(gobold.TTF)
+
+	gc.SetFont(font)
+	gc.SetFontSize(14)
+	gc.SetLineWidth(2.5)
+	msg := "ABCDEFGHIJKLMNOPQ"
+	// L, T, R, B := gc.GetStringBounds(msg)
+
+	// fmt.Println("L T R B", L, T, R, B)
+	gc.StrokeStringAt(msg, 0, 20)
+	// gc.FillStroke()
+	gc.SetFontSize(20)
+	gc.SetLineWidth(4)
+	gc.StrokeStringAt("4 NOV 2017", 0, 170)
+	gc.FillStroke()
+	gc.Close()
 	draw2dimg.SaveToPngFile("hello.png", img)
+
+	f1, _ := os.Create("input.bmp")
+
+	bmp.Encode(f1, img)
+	f1.Close()
+
 	/// grayimage
 	b := img.Bounds()
 
 	gimg := image.NewGray(b)
 	var cg color.Gray
-
+	mono = true
 	for r := 0; r < b.Max.Y; r++ {
 		for c := 0; c < b.Max.X; c++ {
 			oldPixel := img.At(r, c)

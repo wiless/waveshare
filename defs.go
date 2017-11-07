@@ -344,7 +344,7 @@ func Mono2ByteImage(img *image.Gray) (byteimg image.Gray) {
 	for r := 0; r < R; r++ {
 		bc := 0
 		for c := 0; c < C; c++ {
-			pix := img.GrayAt(r, c).Y
+			pix := img.GrayAt(200-r, c).Y
 			if pix > 0 { // 0 if monochrome or 128 if gray scale
 				bitstr += "1"
 			} else {
