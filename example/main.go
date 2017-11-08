@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"os"
@@ -11,9 +12,10 @@ import (
 	"github.com/llgcode/draw2d/draw2dimg"
 	"github.com/llgcode/draw2d/draw2dkit"
 
+	"log"
+
 	"github.com/golang/freetype/truetype"
 	"github.com/golang/glog"
-"log"
 
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/font/gofont/goregular"
@@ -30,38 +32,35 @@ func main() {
 	epd.Init(true)
 	epdimg := ImageGenerate()
 	kavimg := waveshare.LoadImage("kavishbw.jpg")
-_=epdimg	
-_=kavimg
+	_ = epdimg
+	_ = kavimg
 	log.Println("Loading kavish..")
 	//UpdateImage(*kavimg)
 	UpdateImage(epdimg)
-//	time.Sleep(2*time.Second)
-//	UpdateImage(epdimg)
+	//	time.Sleep(2*time.Second)
+	//	UpdateImage(epdimg)
 
 	epd.DisplayFrame()
-	time.Sleep(2*time.Second)
+	time.Sleep(2 * time.Second)
 	log.Println("Loading Geometry.....")
 	UpdateImage(epdimg)
 	// Toggling frames
-//	for k:=0;k<4;k++{
-//		time.Sleep(5*time.Second)
-//		log.Println("Toggling Image...")
-//		epd.DisplayFrame()
-//	}
-	
+	//	for k:=0;k<4;k++{
+	//		time.Sleep(5*time.Second)
+	//		log.Println("Toggling Image...")
+	//		epd.DisplayFrame()
+	//	}
 
 	epd.Init(false)
-	for k:=0;k<5;k++ {
-	epd.DrawLine(30+2*k,1,0x00)
+	for k := 0; k < 5; k++ {
+		epd.DrawLine(30+2*k, 1, 0x00)
 	}
 
 	log.Println("Partial Updating ...")
-	for {
+	//	for {
 	PartialUpdate()
-	time.Sleep(1*time.Second)
-	}
-
-
+	time.Sleep(1 * time.Second)
+	//	}
 
 }
 func UpdateImage(epdimg image.Gray) {
@@ -72,55 +71,67 @@ func UpdateImage(epdimg image.Gray) {
 func PartialUpdate() {
 
 	epd.Init(false)
-	timeimg := image.NewRGBA(image.Rect(0, 0, 48, 96))
+	timeimg := image.NewRGBA(image.Rect(0, 0, 104, 50))
+	for r:=0;r<50;r++ {
+		for c:=0;c<104;c++ {
+		timeimg.Set(r,c,color.White)
+		}
+	}
+
 	gc := draw2dimg.NewGraphicContext(timeimg)
+//	gc.ClearRect(0, 0, 104, 50)
 	gc.SetFillColor(color.Black)
 	gc.SetStrokeColor(color.Black)
-	draw2dkit.Rectangle(gc, 0, 0, 96, 48)
-	gc.SetLineWidth(1.5)
-	gc.StrokeStringAt(" A B C ", 0, 10)
+	font, _ := truetype.Parse(goregular.TTF)
+	// font, _ := truetype.Parse(gobold.TTF)
+
+	gc.SetFont(font)
+	gc.SetFontSize(14)
+	gc.SetLineWidth(3)
+
+	gc.StrokeStringAt(" A B C ", 15, 20)
 	gc.Stroke()
-	gc.Save()
+	gc.Close()
 	draw2dimg.SaveToPngFile("subimage.png", timeimg)
 	gimg := ConvertToGray(timeimg)
-	SaveBMP("subimage.bmp", gimg)	
-	log.Println("SUBIMAGE ",gimg)
-	epd.SetSubFrame(8, 8, gimg)
-	
+
+	SaveBMP("subimage.bmp", gimg)
+	fmt.Println(" GRAY IMAGES = ", gimg)
+	epd.SetSubFrame(50, 0, gimg)
+
+	x := waveshare.Mono2ByteImage(gimg)
+	fmt.Println("BYTE IMG", x)
 }
-func ConvertToGray(cimg image.Image) *image.Gray {
-	b := cimg.Bounds()
+func ConvertToGray(img image.Image) *image.Gray {
+
+	/// grayimage
+
+	b := img.Bounds()
+	RR:=b.Max.Y
 	gimg := image.NewGray(b)
-	RR := b.Max.Y
-	CC := b.Max.X
 	var cg color.Gray
 	mono = true
 	for r := 0; r < RR; r++ {
-//		fmt.Println()
-
-		for c := 0; c < CC; c++ {
-			oldPixel := cimg.At(c, r)
+		for c := 0; c < b.Max.X; c++ {
+			oldPixel := img.At(c, b.Max.Y-r)
 
 			// gscale, _, _, _ := color.GrayModel.Convert(oldPixel).RGBA()
 			cg = color.GrayModel.Convert(oldPixel).(color.Gray)
 
 			// convert to monochrome
 			if mono {
-				str := ""
-				_=str
 				if cg.Y > 0 {
 					cg.Y = 255
-					str = "1"
 				} else {
 					cg.Y = 0
-					str = "0"
 				}
-//				fmt.Print(str)
+
 			}
 			gimg.SetGray(r, c, cg)
 
 		}
 	}
+
 	return gimg
 }
 
@@ -145,7 +156,7 @@ func ImageGenerate() (epdimg image.Gray) {
 
 	gc := draw2dimg.NewGraphicContext(img)
 	gc.ClearRect(0, 0, 200, 200)
-//gc.Rotate(3.141)
+	//gc.Rotate(3.141)
 	gc.SetStrokeColor(color.Black)
 	gc.SetFillColor(color.Black)
 	gc.SetLineWidth(2)
@@ -184,10 +195,9 @@ func ImageGenerate() (epdimg image.Gray) {
 	datestr := time.Now().Format(time.Stamp)
 	gc.StrokeStringAt(datestr, 0, 170)
 	gc.FillStroke()
-	
 
 	gc.Close()
-	
+
 	draw2dimg.SaveToPngFile("hello.png", img)
 
 	f1, _ := os.Create("input.bmp")
@@ -196,31 +206,33 @@ func ImageGenerate() (epdimg image.Gray) {
 	f1.Close()
 
 	/// grayimage
-	b := img.Bounds()
+	/*
+		b := img.Bounds()
 
-	gimg := image.NewGray(b)
-	var cg color.Gray
-	mono = true
-	for r := 0; r < b.Max.Y; r++ {
-		for c := 0; c < b.Max.X; c++ {
-			oldPixel := img.At(c,200-r)
+		gimg := image.NewGray(b)
+		var cg color.Gray
+		mono = true
+		for r := 0; r < b.Max.Y; r++ {
+			for c := 0; c < b.Max.X; c++ {
+				oldPixel := img.At(c, 200-r)
 
-			// gscale, _, _, _ := color.GrayModel.Convert(oldPixel).RGBA()
-			cg = color.GrayModel.Convert(oldPixel).(color.Gray)
+				// gscale, _, _, _ := color.GrayModel.Convert(oldPixel).RGBA()
+				cg = color.GrayModel.Convert(oldPixel).(color.Gray)
 
-			// convert to monochrome
-			if mono {
-				if cg.Y > 0 {
-					cg.Y = 255
-				} else {
-					cg.Y = 0
+				// convert to monochrome
+				if mono {
+					if cg.Y > 0 {
+						cg.Y = 255
+					} else {
+						cg.Y = 0
+					}
+
 				}
+				gimg.SetGray(r, c, cg)
 
 			}
-			gimg.SetGray(r, c, cg)
-
-		}
-	}
+		} */
+	gimg := ConvertToGray(img)
 	///
 
 	////

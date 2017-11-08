@@ -3,6 +3,7 @@ package waveshare
 
 import (
 	"flag"
+	"fmt"
 	"image"
 	"image/color"
 	"log"
@@ -232,80 +233,81 @@ func (e *EPD) GetFrame() *image.Gray {
 	return img
 }
 
-var mode bool=true
+var mode bool = true
 var rval uint8
- 
-func init(){
-rval= uint8(rand.Int31n(255))
-}
 
+func init() {
+	rval = uint8(rand.Int31n(255))
+}
 
 // SetSubFrame sets subset of image at r,c location, assume r,c=8n , column is multiple of 8
 func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
 
 	W, H := binimg.Bounds().Dx(), binimg.Bounds().Dx()
-/*
-	if W > 200 || H > 200 {
-		return
-	}
-	ww := binimg.Bounds().Dx()
-	hh := binimg.Bounds().Dy()
+	/*
+		if W > 200 || H > 200 {
+			return
+		}
+		ww := binimg.Bounds().Dx()
+		hh := binimg.Bounds().Dy()
 
-	if c+ww > 200 {
-		ww = 200 - c
-	}
-	if r+hh > 200 {
-		hh = 200 - r
-	}
-*/
-//	subimg := binimg.SubImage(image.Rect(0, 0, ww, hh)).(*image.Gray)
+		if c+ww > 200 {
+			ww = 200 - c
+		}
+		if r+hh > 200 {
+			hh = 200 - r
+		}
+	*/
+	//	subimg := binimg.SubImage(image.Rect(0, 0, ww, hh)).(*image.Gray)
 	byteimg := Mono2ByteImage(binimg)
 	log.Print(byteimg)
 	BW := byteimg.Bounds().Dx()
 	hh := H
-//	BW := 6 // 6*8=48 PIXEL wide
- 
-	e.setMemArea(uint8(c),uint8(r),uint8(c+BW), uint8(r+hh-1))
- 	log.Println("Rand val ", rval,W,BW)
+	//	BW := 6 // 6*8=48 PIXEL wide
 
-		e.SetXY(byte(c),byte(r))
-		
-		e.SendCommand(WRITE_RAM)
-		for row := 0; row < hh; row++ {
+	e.setMemArea(uint8(c), uint8(r), uint8(c+BW-1), uint8(r+hh-1))
+	log.Println("Rand val ", rval, W, BW)
+
+	for row := 0; row < hh; row++ {
 		bytearray := make([]byte, BW)
+
+		e.SetXY(byte(c), byte(r+row))
+		e.SendCommand(WRITE_RAM)
 		for col := 0; col < BW; col++ {
 			pixel := byteimg.GrayAt(row, col).Y
 			//			pixel := 0X80
-			// pixel = 0xAA
+			pixel = 0xAA
 			//pixel := rval
-		bytearray[col] = pixel // byte(rval)
+			//	pixel= uint8(rand.Int31n(255))
+			if row%2 == 0 {
+				pixel = 0xFF
+			}
+			bytearray[col] = pixel // byte(rval)
 		}
-		
+
 		e.SendData(bytearray...)
 	}
-	
-		e.wait()
+
+	e.wait()
 	e.DisplayFrame()
 }
 
-func (e *EPD) DrawLine(row int,thick int,color uint8){
+func (e *EPD) DrawLine(row int, thick int, color uint8) {
 
-e.setMemArea(0,byte(row), 200, byte( row+thick-1))
- bytearray := make([]byte, 25)
-e.SetXY(0,byte(row))
-for c:=0;c<25;c++ {
-	if color>0 {
-	bytearray[c]=0xff
-}
-}
-for r:=0;r<thick;r++ {
-   e.CallFunction(WRITE_RAM,bytearray...)
-	 e.wait()
-}
+	e.setMemArea(0, byte(row), 200, byte(row+thick-1))
+	bytearray := make([]byte, 25)
+	e.SetXY(0, byte(row))
+	for c := 0; c < 25; c++ {
+		if color > 0 {
+			bytearray[c] = 0xff
+		}
+	}
+	for r := 0; r < thick; r++ {
+		e.CallFunction(WRITE_RAM, bytearray...)
+		e.wait()
+	}
 
-
 }
-
 
 //  #  @brief: put an (SUB) image to the frame memory.
 //  #          this won't update the display.
@@ -332,7 +334,7 @@ func (e *EPD) SetFrame(byteimg image.Gray) {
 	// rr := int(y1 - y0 + 1)
 	// cc := int(x1 - x0 + 1)
 
-		e.SetXY(0, byte(0))
+	e.SetXY(0, byte(0))
 	for row := 0; row < 200; row++ {
 		bytearray := make([]byte, 25)
 		for col := 0; col < 25; col++ {
@@ -340,17 +342,17 @@ func (e *EPD) SetFrame(byteimg image.Gray) {
 			//			pixel := 0X80
 			bytearray[col] = byte(pixel)
 		}
-		
-	//	e.SendCommand(WRITE_RAM)
-	//	e.SendData(bytearray...)
-		e.CallFunction(WRITE_RAM,bytearray...)
+
+		//	e.SendCommand(WRITE_RAM)
+		//	e.SendData(bytearray...)
+		e.CallFunction(WRITE_RAM, bytearray...)
 		e.wait()
 	}
-e.DisplayFrame()	
+	e.DisplayFrame()
 }
 
 func (e *EPD) WriteBytePixel(row, col byte, pixel ...byte) {
-	e.SetXY(col,row)
+	e.SetXY(col, row)
 	e.SendCommand(WRITE_RAM)
 	e.SendData(pixel...)
 	e.wait()
@@ -363,15 +365,17 @@ func Mono2ByteImage(img *image.Gray) (byteimg image.Gray) {
 	R := img.Rect.Dy()
 	C := img.Rect.Dx()
 	CC := C / 8 // 8pixels per byte
-	// glog.Infoln("Image2Byte (pixw,byte) ", C, "  :  ", CC)
+	fmt.Println("Image2Byte bits to Bytes ", C, CC)
 
 	epdimg := image.NewGray(image.Rect(0, 0, R, CC))
 	var cg color.Gray
 	var bitstr string
 	for r := 0; r < R; r++ {
 		bc := 0
+		fmt.Printf("\n Row %d : ",r)
+		bitstr=""
 		for c := 0; c < C; c++ {
-			pix := img.GrayAt(200-r, c).Y
+			pix := img.GrayAt(R-r,c).Y
 			if pix > 0 { // 0 if monochrome or 128 if gray scale
 				bitstr += "1"
 			} else {
@@ -384,7 +388,7 @@ func Mono2ByteImage(img *image.Gray) (byteimg image.Gray) {
 					log.Println(" Some error e = ", e)
 				}
 				// fmt.Println("Image2Byte : ", val)
-
+				fmt.Print(bitstr)
 				cg.Y = byte(val)
 
 				epdimg.SetGray(r, bc, cg)
