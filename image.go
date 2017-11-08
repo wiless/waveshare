@@ -56,7 +56,7 @@ if e!=nil{
 			bytecnt=0
 
 			for col := 0; col < 200; col++ {
-				c := img.At(200-row, 200-col)
+				c := img.At(row, col)
 				r, _, _, _ := c.RGBA()
 				if r > 0 {
 					bitstr[bitcount] = "1"
