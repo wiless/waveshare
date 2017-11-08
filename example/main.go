@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"os"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/golang/freetype/truetype"
 	"github.com/golang/glog"
+"log"
 
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/font/gofont/goregular"
@@ -27,21 +27,39 @@ var epd waveshare.EPD
 func main() {
 	waveshare.InitHW()
 	draw2d.SetFontFolder(".")
-
+	epd.Init(true)
 	epdimg := ImageGenerate()
+	kavimg := waveshare.LoadImage("kavishbw.jpg")
+	
+	log.Println("Loading kavish..")
+	UpdateImage(*kavimg)
+	
+	
+	time.Sleep(2*time.Second)
+	
+	log.Println("Loading Geometry.....")
 	UpdateImage(epdimg)
+	for{
+		time.Sleep(5*time.Second)
+		log.Println("Toggling Image...")
+		epd.DisplayFrame()
+	}
+	
+	_=epdimg
+return		
+		time.Sleep(2 * time.Second)
+	for {
 
-	time.Sleep(2 * time.Second)
 	PartialUpdate()
+	time.Sleep(1*time.Second)
+	}
+
+
 
 }
 func UpdateImage(epdimg image.Gray) {
-	epd.Init(true)
-	// epd.ClearFrame(0xff)
 
 	epd.SetFrame(epdimg) // set both frames with same image
-	epd.SetFrame(epdimg)
-	epd.SetFrame(epdimg)
 }
 
 func PartialUpdate() {
@@ -63,8 +81,6 @@ func PartialUpdate() {
 	
 	epd.SetSubFrame(8, 8, gimg)
 	epd.DisplayFrame()
-	//time.Sleep(5*time.Second)
-	epd.SetSubFrame(8,8,gimg)
 }
 func ConvertToGray(cimg image.Image) *image.Gray {
 	b := cimg.Bounds()
@@ -74,7 +90,7 @@ func ConvertToGray(cimg image.Image) *image.Gray {
 	var cg color.Gray
 	mono = true
 	for r := 0; r < RR; r++ {
-		fmt.Println()
+//		fmt.Println()
 
 		for c := 0; c < CC; c++ {
 			oldPixel := cimg.At(c, r)
@@ -85,6 +101,7 @@ func ConvertToGray(cimg image.Image) *image.Gray {
 			// convert to monochrome
 			if mono {
 				str := ""
+				_=str
 				if cg.Y > 0 {
 					cg.Y = 255
 					str = "1"
@@ -92,7 +109,7 @@ func ConvertToGray(cimg image.Image) *image.Gray {
 					cg.Y = 0
 					str = "0"
 				}
-				fmt.Print(str)
+//				fmt.Print(str)
 			}
 			gimg.SetGray(r, c, cg)
 

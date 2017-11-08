@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -255,6 +256,8 @@ func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
 	BW := byteimg.Bounds().Dx()
 	hh = 50
 	BW = 6 // 6*8=48 PIXEL wide
+	rval := uint8(rand.Int31n(255))
+	log.Println("Rand val ", rval)
 	for row := 0; row < hh; row++ {
 		e.SetXY(byte(c), byte(row+r))
 		e.SendCommand(WRITE_RAM)
@@ -262,7 +265,9 @@ func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
 		for col := 0; col < BW; col++ {
 			pixel := byteimg.GrayAt(row, col).Y
 			//			pixel := 0X80
-			pixel = 0xAA
+			// pixel = 0xAA
+			pixel = rval
+
 			bytearray[col] = byte(pixel)
 		}
 		e.SendData(bytearray...)
@@ -276,7 +281,7 @@ func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
 func (e *EPD) SetFrame(byteimg image.Gray) {
 	h, w := byte(byteimg.Bounds().Dx()), byte(byteimg.Bounds().Dy())
 	if h < 200 || w < 25 {
-		glog.Errorln("Image large size ",h,w)
+		glog.Errorln("Image large size ", h, w)
 		return
 	}
 	// var x1, y1 byte
@@ -308,7 +313,7 @@ func (e *EPD) SetFrame(byteimg image.Gray) {
 		e.SendData(bytearray...)
 		e.wait()
 	}
-	e.DisplayFrame()
+e.DisplayFrame()	
 }
 
 func (e *EPD) WriteBytePixel(row, col byte, pixel ...byte) {

@@ -52,7 +52,7 @@ if e!=nil{
 	var cg color.Gray
 	if width >= 200 && height >= 200 {
 		for row := 0; row < 200; row++ {
-			fmt.Println()
+//			fmt.Println()
 			bytecnt=0
 
 			for col := 0; col < 200; col++ {
