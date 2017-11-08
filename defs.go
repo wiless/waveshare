@@ -231,7 +231,8 @@ func (e *EPD) GetFrame() *image.Gray {
 }
 
 // SetSubFrame sets subset of image at r,c location, assume r,c=8n , column is multiple of 8
-func (e *EPD) SetSubFrame(r, c int, binimg image.Gray) {
+func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
+
 	W, H := binimg.Bounds().Dx(), binimg.Bounds().Dx()
 	if W > 200 || H > 200 {
 		return

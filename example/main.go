@@ -29,42 +29,73 @@ func main() {
 
 	epdimg := ImageGenerate()
 	UpdateImage(epdimg)
+	time.Sleep(500 * time.Millisecond)
+	PartialUpdate()
 }
 func UpdateImage(epdimg image.Gray) {
 	epd.Init(true)
 	epd.ClearFrame(0xff)
 	epd.SetFrame(epdimg)
 	epd.DisplayFrame()
+
 	// epd.ClearFrame(0xff)
 	// epd.SetFrame(epdimg)
 	// epd.DisplayFrame()
 }
 
-func PartialUpdate(img image.Gray, x, y uint8) {
+func PartialUpdate() {
 
-	// 	  epd.init(epd.lut_partial_update)
-	//     image = Image.open('monocolor.bmp')
-	// ##
-	//  # there are 2 memory areas embedded in the e-paper display
-	//  # and once the display is refreshed, the memory area will be auto-toggled,
-	//  # i.e. the next action of SetFrameMemory will set the other memory area
-	//  # therefore you have to set the frame memory twice.
-	//  ##
-	//     epd.set_frame_memory(image, 0, 0)
-	//     epd.display_frame()
-	//     epd.set_frame_memory(image, 0, 0)
-	//     epd.display_frame()
+	epd.Init(false)
+	timeimg := image.NewRGBA(image.Rect(0, 0, 100, 48))
+	gc := draw2dimg.NewGraphicContext(timeimg)
+	gc.ClearRect(0, 0, 100, 30)
+	gc.SetFillColor(color.Black)
+	gc.SetLineWidth(1.5)
+	gc.StrokeStringAt("Hey I am good", 0, 10)
+	gc.FillStroke()
+	gc.Save()
+	draw2dimg.SaveToPngFile("subimage.png", timeimg)
+	gimg := ConvertToGray(timeimg)
+	SaveBMP("subimage.bmp", gimg)
+	epd.SetSubFrame(8, 8, gimg)
 
-	//     time_image = Image.new('1', (96, 32), 255)  # 255: clear the frame
-	//     draw = ImageDraw.Draw(time_image)
-	//     font = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf', 32)
-	//     image_width, image_height  = time_image.size
-	//     while (True):
-	//         # draw a rectangle to clear the image
-	//         draw.rectangle((0, 0, image_width, image_height), fill = 255)
-	//         draw.text((0, 0), time.strftime('%M:%S'), font = font, fill = 0)
-	//         epd.set_frame_memory(time_image.rotate(90), 80, 80)
-	//         epd.display_frame()
+}
+func ConvertToGray(cimg image.Image) *image.Gray {
+	b := cimg.Bounds()
+	gimg := image.NewGray(b)
+	var cg color.Gray
+	mono = true
+	for r := 0; r < b.Max.Y; r++ {
+		for c := 0; c < b.Max.X; c++ {
+			oldPixel := cimg.At(r, c)
+
+			// gscale, _, _, _ := color.GrayModel.Convert(oldPixel).RGBA()
+			cg = color.GrayModel.Convert(oldPixel).(color.Gray)
+
+			// convert to monochrome
+			if mono {
+				if cg.Y > 0 {
+					cg.Y = 255
+				} else {
+					cg.Y = 0
+				}
+
+			}
+			gimg.SetGray(r, c, cg)
+
+		}
+	}
+	return gimg
+}
+
+func SaveBMP(fname string, img image.Image) {
+	fp, fe := os.Create(fname)
+	if fe != nil {
+		glog.Errorln("Unable to Save ", fname)
+		return
+	}
+	bmp.Encode(fp, img)
+	fp.Close()
 }
 
 func ImageGenerate() (epdimg image.Gray) {
