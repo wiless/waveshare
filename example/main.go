@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"os"
@@ -29,57 +30,69 @@ func main() {
 
 	epdimg := ImageGenerate()
 	UpdateImage(epdimg)
-	time.Sleep(500 * time.Millisecond)
+
+	time.Sleep(2 * time.Second)
 	PartialUpdate()
+
 }
 func UpdateImage(epdimg image.Gray) {
 	epd.Init(true)
-	epd.ClearFrame(0xff)
-	epd.SetFrame(epdimg)
-	epd.DisplayFrame()
-
 	// epd.ClearFrame(0xff)
-	// epd.SetFrame(epdimg)
-	// epd.DisplayFrame()
+
+	epd.SetFrame(epdimg) // set both frames with same image
+	epd.SetFrame(epdimg)
+	epd.SetFrame(epdimg)
 }
 
 func PartialUpdate() {
 
 	epd.Init(false)
-	timeimg := image.NewRGBA(image.Rect(0, 0, 100, 48))
+	timeimg := image.NewRGBA(image.Rect(0, 0, 48, 96))
 	gc := draw2dimg.NewGraphicContext(timeimg)
-	gc.ClearRect(0, 0, 100, 30)
-	gc.SetFillColor(color.Black)
+	gc.ClearRect(0, 0, 48, 96)
+	gc.SetFillColor(color.White)
+	gc.SetStrokeColor(color.Black)
+	draw2dkit.Rectangle(gc, 0, 0, 96, 48)
 	gc.SetLineWidth(1.5)
-	gc.StrokeStringAt("Hey I am good", 0, 10)
+	// gc.StrokeStringAt("Hey I am good", 0, 10)
 	gc.FillStroke()
 	gc.Save()
 	draw2dimg.SaveToPngFile("subimage.png", timeimg)
 	gimg := ConvertToGray(timeimg)
 	SaveBMP("subimage.bmp", gimg)
+	
 	epd.SetSubFrame(8, 8, gimg)
-
+	epd.DisplayFrame()
+	//time.Sleep(5*time.Second)
+	epd.SetSubFrame(8,8,gimg)
 }
 func ConvertToGray(cimg image.Image) *image.Gray {
 	b := cimg.Bounds()
 	gimg := image.NewGray(b)
+	RR := b.Max.Y
+	CC := b.Max.X
 	var cg color.Gray
 	mono = true
-	for r := 0; r < b.Max.Y; r++ {
-		for c := 0; c < b.Max.X; c++ {
-			oldPixel := cimg.At(r, c)
+	for r := 0; r < RR; r++ {
+		fmt.Println()
+
+		for c := 0; c < CC; c++ {
+			oldPixel := cimg.At(c, r)
 
 			// gscale, _, _, _ := color.GrayModel.Convert(oldPixel).RGBA()
 			cg = color.GrayModel.Convert(oldPixel).(color.Gray)
 
 			// convert to monochrome
 			if mono {
+				str := ""
 				if cg.Y > 0 {
 					cg.Y = 255
+					str = "1"
 				} else {
 					cg.Y = 0
+					str = "0"
 				}
-
+				fmt.Print(str)
 			}
 			gimg.SetGray(r, c, cg)
 

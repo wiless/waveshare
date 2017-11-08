@@ -3,12 +3,13 @@ package waveshare
 
 import (
 	"flag"
-	"fmt"
 	"image"
 	"image/color"
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/golang/glog"
 
 	"github.com/kidoman/embd"
 )
@@ -249,64 +250,51 @@ func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
 
 	subimg := binimg.SubImage(image.Rect(0, 0, ww, hh)).(*image.Gray)
 	byteimg := Mono2ByteImage(subimg)
+	log.Print(subimg)
+	log.Print(byteimg)
 	BW := byteimg.Bounds().Dx()
-
+	hh = 50
+	BW = 6 // 6*8=48 PIXEL wide
 	for row := 0; row < hh; row++ {
 		e.SetXY(byte(c), byte(row+r))
 		e.SendCommand(WRITE_RAM)
-
 		bytearray := make([]byte, BW)
 		for col := 0; col < BW; col++ {
 			pixel := byteimg.GrayAt(row, col).Y
 			//			pixel := 0X80
+			pixel = 0xAA
 			bytearray[col] = byte(pixel)
 		}
 		e.SendData(bytearray...)
 		e.wait()
 	}
-
+	e.DisplayFrame()
 }
-
-// buf = [0x00] * (self.width * self.height / 8)
-// # Set buffer to value of Python Imaging Library image.
-// # Image must be in mode 1.
-// image_monocolor = image.convert('1')
-// imwidth, imheight = image_monocolor.size
-// if imwidth != self.width or imheight != self.height:
-//     raise ValueError('Image must be same dimensions as display \
-//         ({0}x{1}).' .format(self.width, self.height))
-
-// pixels = image_monocolor.load()
-// for y in range(self.height):
-//     for x in range(self.width):
-//         # Set the bits for the column of pixels at the current position.
-//         if pixels[x, y] != 0:
-//             buf[(x + y * self.width) / 8] |= 0x80 >> (x % 8)
-// return buf
 
 //  #  @brief: put an (SUB) image to the frame memory.
 //  #          this won't update the display.
 func (e *EPD) SetFrame(byteimg image.Gray) {
 	h, w := byte(byteimg.Bounds().Dx()), byte(byteimg.Bounds().Dy())
-	x0 := uint8(0)
-	y0 := uint8(0)
-	var x1, y1 byte
-	x1 = x0 + (w) - 1
-	y1 = y0 + (h) - 1
-	if x0+w >= EPD_WIDTH {
-		x1 = EPD_WIDTH - 1
+	if h < 200 || w < 25 {
+		glog.Errorln("Image large size ",h,w)
+		return
 	}
-	if y0+h >= EPD_HEIGHT {
-		y1 = EPD_HEIGHT - 1
-	}
+	// var x1, y1 byte
+	// x1 = x0 + (w) - 1
+	// y1 = y0 + (h) - 1
+	// if x0+w >= EPD_WIDTH {
+	// 	x1 = EPD_WIDTH - 1
+	// }
+	// if y0+h >= EPD_HEIGHT {
+	// 	y1 = EPD_HEIGHT - 1
+	// }
 
 	e.setMemArea(0, 0, 200, 200)
 
 	// # send the image data
 
-	rr := int(y1 - y0 + 1)
-	cc := int(x1 - x0 + 1)
-	fmt.Println(rr, cc, " OUTPUT ")
+	// rr := int(y1 - y0 + 1)
+	// cc := int(x1 - x0 + 1)
 
 	for row := 0; row < 200; row++ {
 		bytearray := make([]byte, 25)
@@ -320,7 +308,7 @@ func (e *EPD) SetFrame(byteimg image.Gray) {
 		e.SendData(bytearray...)
 		e.wait()
 	}
-
+	e.DisplayFrame()
 }
 
 func (e *EPD) WriteBytePixel(row, col byte, pixel ...byte) {
