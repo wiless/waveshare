@@ -213,7 +213,7 @@ func (e *EPD) ClearFrame(color byte) {
 	e.setMemArea(0, 0, EPD_WIDTH-1, EPD_HEIGHT-1)
 	//	e.setMemArea(0, 0, 200,200)
 	e.SetXY(0, 0)
-	e.CallFunction(WRITE_RAM)
+	e.SendCommand(WRITE_RAM)
 
 	L := int((EPD_WIDTH / 8)) * int(EPD_HEIGHT) // 8pixels cols = 1 byte
 
@@ -243,7 +243,8 @@ rval= uint8(rand.Int31n(255))
 // SetSubFrame sets subset of image at r,c location, assume r,c=8n , column is multiple of 8
 func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
 
-/*	W, H := binimg.Bounds().Dx(), binimg.Bounds().Dx()
+	W, H := binimg.Bounds().Dx(), binimg.Bounds().Dx()
+/*
 	if W > 200 || H > 200 {
 		return
 	}
@@ -256,46 +257,40 @@ func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
 	if r+hh > 200 {
 		hh = 200 - r
 	}
-
-	subimg := binimg.SubImage(image.Rect(0, 0, ww, hh)).(*image.Gray)
-	byteimg := Mono2ByteImage(subimg)
-//	log.Print(subimg)
-//	log.Print(byteimg)
+*/
+//	subimg := binimg.SubImage(image.Rect(0, 0, ww, hh)).(*image.Gray)
+	byteimg := Mono2ByteImage(binimg)
+	log.Print(byteimg)
 	BW := byteimg.Bounds().Dx()
-	*/
-	hh := 80
-	BW := 6 // 6*8=48 PIXEL wide
+	hh := H
+//	BW := 6 // 6*8=48 PIXEL wide
  
-	e.setMemArea(uint8(c),uint8(r),uint8(c+BW), uint8(r+hh))
- log.Println("Rand val ", rval)
+	e.setMemArea(uint8(c),uint8(r),uint8(c+BW), uint8(r+hh-1))
+ 	log.Println("Rand val ", rval,W,BW)
 
 		e.SetXY(byte(c),byte(r))
- for row := 0; row < 11; row++ {
+		
+		e.SendCommand(WRITE_RAM)
+		for row := 0; row < hh; row++ {
 		bytearray := make([]byte, BW)
 		for col := 0; col < BW; col++ {
-	//		pixel := byteimg.GrayAt(row, col).Y
+			pixel := byteimg.GrayAt(row, col).Y
 			//			pixel := 0X80
 			// pixel = 0xAA
-			pixel := rval
-rval=uint8(rand.Intn(255))
-	if mode {
-	pixel=0xAA
-	mode=!mode
-	}else{
-		pixel=0;}
-	_=pixel	
-		bytearray[col] = byte(0xAA)
+			//pixel := rval
+		bytearray[col] = pixel // byte(rval)
 		}
 		
-		e.CallFunction(WRITE_RAM,bytearray...)
-		e.wait()
+		e.SendData(bytearray...)
 	}
+	
+		e.wait()
 	e.DisplayFrame()
 }
 
 func (e *EPD) DrawLine(row int,thick int,color uint8){
 
-e.setMemArea(0,byte(row), 100, byte( row+thick))
+e.setMemArea(0,byte(row), 200, byte( row+thick-1))
  bytearray := make([]byte, 25)
 e.SetXY(0,byte(row))
 for c:=0;c<25;c++ {
