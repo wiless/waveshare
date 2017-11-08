@@ -41,6 +41,7 @@ if e!=nil{
 
 	log.Println("Bounds ", img.Bounds())
 	
+	//rorate it it...
 	byteimg=image.NewGray(image.Rect(0,0,200,25))
 	width, height := img.Bounds().Dx(), img.Bounds().Dy()
 
@@ -56,7 +57,7 @@ if e!=nil{
 			bytecnt=0
 
 			for col := 0; col < 200; col++ {
-				c := img.At(row, col)
+				c := img.At(col,row)
 				r, _, _, _ := c.RGBA()
 				if r > 0 {
 					bitstr[bitcount] = "1"

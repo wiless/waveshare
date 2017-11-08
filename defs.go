@@ -232,10 +232,18 @@ func (e *EPD) GetFrame() *image.Gray {
 	return img
 }
 
+var mode bool=true
+var rval uint8
+ 
+func init(){
+rval= uint8(rand.Int31n(255))
+}
+
+
 // SetSubFrame sets subset of image at r,c location, assume r,c=8n , column is multiple of 8
 func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
 
-	W, H := binimg.Bounds().Dx(), binimg.Bounds().Dx()
+/*	W, H := binimg.Bounds().Dx(), binimg.Bounds().Dx()
 	if W > 200 || H > 200 {
 		return
 	}
@@ -251,30 +259,58 @@ func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
 
 	subimg := binimg.SubImage(image.Rect(0, 0, ww, hh)).(*image.Gray)
 	byteimg := Mono2ByteImage(subimg)
-	log.Print(subimg)
-	log.Print(byteimg)
+//	log.Print(subimg)
+//	log.Print(byteimg)
 	BW := byteimg.Bounds().Dx()
-	hh = 50
-	BW = 6 // 6*8=48 PIXEL wide
-	rval := uint8(rand.Int31n(255))
-	log.Println("Rand val ", rval)
-	for row := 0; row < hh; row++ {
-		e.SetXY(byte(c), byte(row+r))
-		e.SendCommand(WRITE_RAM)
+	*/
+	hh := 80
+	BW := 6 // 6*8=48 PIXEL wide
+ 
+	e.setMemArea(uint8(c),uint8(r),uint8(c+BW), uint8(r+hh))
+ log.Println("Rand val ", rval)
+
+		e.SetXY(byte(c),byte(r))
+ for row := 0; row < 11; row++ {
 		bytearray := make([]byte, BW)
 		for col := 0; col < BW; col++ {
-			pixel := byteimg.GrayAt(row, col).Y
+	//		pixel := byteimg.GrayAt(row, col).Y
 			//			pixel := 0X80
 			// pixel = 0xAA
-			pixel = rval
-
-			bytearray[col] = byte(pixel)
+			pixel := rval
+rval=uint8(rand.Intn(255))
+	if mode {
+	pixel=0xAA
+	mode=!mode
+	}else{
+		pixel=0;}
+	_=pixel	
+		bytearray[col] = byte(0xAA)
 		}
-		e.SendData(bytearray...)
+		
+		e.CallFunction(WRITE_RAM,bytearray...)
 		e.wait()
 	}
 	e.DisplayFrame()
 }
+
+func (e *EPD) DrawLine(row int,thick int,color uint8){
+
+e.setMemArea(0,byte(row), 100, byte( row+thick))
+ bytearray := make([]byte, 25)
+e.SetXY(0,byte(row))
+for c:=0;c<25;c++ {
+	if color>0 {
+	bytearray[c]=0xff
+}
+}
+for r:=0;r<thick;r++ {
+   e.CallFunction(WRITE_RAM,bytearray...)
+	 e.wait()
+}
+
+
+}
+
 
 //  #  @brief: put an (SUB) image to the frame memory.
 //  #          this won't update the display.
@@ -301,23 +337,25 @@ func (e *EPD) SetFrame(byteimg image.Gray) {
 	// rr := int(y1 - y0 + 1)
 	// cc := int(x1 - x0 + 1)
 
+		e.SetXY(0, byte(0))
 	for row := 0; row < 200; row++ {
 		bytearray := make([]byte, 25)
-		e.SetXY(0, byte(row))
-		e.SendCommand(WRITE_RAM)
 		for col := 0; col < 25; col++ {
 			pixel := byteimg.GrayAt(row, col).Y
 			//			pixel := 0X80
 			bytearray[col] = byte(pixel)
 		}
-		e.SendData(bytearray...)
+		
+	//	e.SendCommand(WRITE_RAM)
+	//	e.SendData(bytearray...)
+		e.CallFunction(WRITE_RAM,bytearray...)
 		e.wait()
 	}
 e.DisplayFrame()	
 }
 
 func (e *EPD) WriteBytePixel(row, col byte, pixel ...byte) {
-	e.SetXY(row, col)
+	e.SetXY(col,row)
 	e.SendCommand(WRITE_RAM)
 	e.SendData(pixel...)
 	e.wait()

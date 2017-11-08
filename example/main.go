@@ -30,26 +30,32 @@ func main() {
 	epd.Init(true)
 	epdimg := ImageGenerate()
 	kavimg := waveshare.LoadImage("kavishbw.jpg")
-	
+_=epdimg	
+_=kavimg
 	log.Println("Loading kavish..")
 	UpdateImage(*kavimg)
-	
-	
+	//UpdateImage(epdimg)
 	time.Sleep(2*time.Second)
-	
-	log.Println("Loading Geometry.....")
 	UpdateImage(epdimg)
-	for{
-		time.Sleep(5*time.Second)
-		log.Println("Toggling Image...")
-		epd.DisplayFrame()
-	}
-	
-	_=epdimg
-return		
-		time.Sleep(2 * time.Second)
-	for {
 
+	epd.Init(false)
+	epd.DrawLine(30,1,0x00)
+	epd.DrawLine(50,2,0x00)
+	epd.DisplayFrame()
+return
+	//	time.Sleep(2*time.Second)
+//	log.Println("Loading Geometry.....")
+//	UpdateImage(epdimg)
+	// Toggling frames
+//	for k:=0;k<4;k++{
+//		time.Sleep(5*time.Second)
+//		log.Println("Toggling Image...")
+//		epd.DisplayFrame()
+//	}
+	
+
+	log.Println("Partial Updating ...")
+	for {
 	PartialUpdate()
 	time.Sleep(1*time.Second)
 	}
@@ -80,7 +86,6 @@ func PartialUpdate() {
 	SaveBMP("subimage.bmp", gimg)
 	
 	epd.SetSubFrame(8, 8, gimg)
-	epd.DisplayFrame()
 }
 func ConvertToGray(cimg image.Image) *image.Gray {
 	b := cimg.Bounds()
@@ -139,14 +144,12 @@ func ImageGenerate() (epdimg image.Gray) {
 
 	gc := draw2dimg.NewGraphicContext(img)
 	gc.ClearRect(0, 0, 200, 200)
-
-	gc.Save()
+gc.Rotate(-3.141/2)
 	gc.SetStrokeColor(color.Black)
 	gc.SetFillColor(color.Black)
 	gc.SetLineWidth(2)
 	draw2dkit.Rectangle(gc, 30, 30, 100, 100)
 	gc.Stroke()
-	gc.Save()
 
 	gc.SetStrokeColor(color.Black)
 	gc.SetFillColor(color.White)
@@ -180,10 +183,10 @@ func ImageGenerate() (epdimg image.Gray) {
 	datestr := time.Now().Format(time.Stamp)
 	gc.StrokeStringAt(datestr, 0, 170)
 	gc.FillStroke()
-	gc.Save()
+	
 
-	gc.Save()
 	gc.Close()
+	
 	draw2dimg.SaveToPngFile("hello.png", img)
 
 	f1, _ := os.Create("input.bmp")
@@ -199,7 +202,7 @@ func ImageGenerate() (epdimg image.Gray) {
 	mono = true
 	for r := 0; r < b.Max.Y; r++ {
 		for c := 0; c < b.Max.X; c++ {
-			oldPixel := img.At(r, c)
+			oldPixel := img.At(c, r)
 
 			// gscale, _, _, _ := color.GrayModel.Convert(oldPixel).RGBA()
 			cg = color.GrayModel.Convert(oldPixel).(color.Gray)
