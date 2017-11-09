@@ -42,7 +42,7 @@ if e!=nil{
 	log.Println("Bounds ", img.Bounds())
 	
 	//rorate it it...
-	byteimg=image.NewGray(image.Rect(0,0,200,25))
+	byteimg=image.NewGray(image.Rect(0,0,25,200))
 	width, height := img.Bounds().Dx(), img.Bounds().Dy()
 
 	
@@ -58,8 +58,8 @@ if e!=nil{
 
 			for col := 0; col < 200; col++ {
 				c := img.At(col,row)
-				r, _, _, _ := c.RGBA()
-				if r > 0 {
+				r, g, b, _ := c.RGBA()
+				if r > 0 || g>0 || b>0 {
 					bitstr[bitcount] = "1"
 				} else {
 					bitstr[bitcount] = "0"
@@ -70,7 +70,7 @@ if e!=nil{
 					str := strings.Join(bitstr[:], "")
 					val, _ := strconv.ParseUint(str, 2, 8)
 					cg.Y=uint8(val)
-					byteimg.SetGray(row,bytecnt,cg)
+					byteimg.SetGray(bytecnt,row,cg)
 
 					bytecnt++
 					

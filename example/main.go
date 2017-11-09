@@ -32,31 +32,30 @@ func main() {
 	epd.Init(true)
 	epdimg := ImageGenerate()
 	kavimg := waveshare.LoadImage("kavishbw.jpg")
-
 	log.Println("Loading kavish..")
-	UpdateImage(*kavimg)
-
+   AsciiPrintByteImage("KAVISH",*kavimg)	
+	UpdateImage(epdimg)
 	time.Sleep(2 * time.Second)
 
 	log.Println("Loading Geometry.....")
 	UpdateImage(epdimg)
-
+_=kavimg
+	epd.DisplayFrame()
+	time.Sleep(2 * time.Second)
 	// return
-	// for {
-	// 	time.Sleep(5 * time.Second)
-	// 	log.Println("Toggling Image...")
-	// 	epd.DisplayFrame()
-	// }
+//	 for {
+//	 	time.Sleep(5 * time.Second)
+//	 	log.Println("Toggling Image...")
+//	 	epd.DisplayFrame()
+//	 }
 
 	_ = epdimg
-
 	time.Sleep(2 * time.Second)
-	// for {
+	 for {
 
 	PartialUpdate()
 	time.Sleep(1 * time.Second)
-
-	// }
+	}
 
 }
 func UpdateImage(epdimg image.Gray) {
@@ -74,7 +73,8 @@ func PartialUpdate() {
 	gc.SetStrokeColor(color.Black)
 	draw2dkit.Rectangle(gc, 10, 10, 90, 40)
 	gc.SetLineWidth(2)
-	gc.StrokeStringAt("A B C", 30, 30)
+	tstr:=time.Now().Format("15:04:05 PM")
+	gc.StrokeStringAt(tstr, 30, 30)
 	gc.Stroke()
 	gc.Save()
 	draw2dimg.SaveToPngFile("subimage.png", timeimg)
@@ -82,7 +82,7 @@ func PartialUpdate() {
 	SaveBMP("subimage.bmp", gimg)
 	AsciiPrint("Partial COLOR", timeimg)
 	AsciiPrint("Partial GRAY", gimg)
-	epd.SetSubFrame(8, 8, gimg)
+	epd.SetSubFrame(40,8, gimg)
 	epd.DisplayFrame()
 }
 func ConvertToGray(img image.Image) *image.Gray {
