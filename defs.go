@@ -11,7 +11,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/golang/glog"
+	"golang.org/x/image/font/gofont/goregular"
 
 	"github.com/kidoman/embd"
 )
@@ -19,6 +21,8 @@ import (
 // # Display resolution
 var EPD_WIDTH uint8 = 200
 var EPD_HEIGHT uint8 = 200
+
+var EPD_FONT *truetype.Font
 
 // # EPD1IN54 commands
 var DRIVER_OUTPUT_CONTROL byte = 0x01
@@ -45,6 +49,7 @@ var TERMINATE_FRAME_READ_WRITE byte = 0xFF
 
 func init() {
 	flag.Parse()
+	EPD_FONT, _ = truetype.Parse(goregular.TTF)
 }
 
 type EPD struct {
@@ -240,18 +245,18 @@ func init() {
 	rval = uint8(rand.Int31n(255))
 }
 
-func AsciiPrintBytes(name string,img image.Gray) {
-     b := img.Bounds()
-	       R, C := b.Max.Y, b.Max.X
-	        fmt.Printf("\n %s = [rows x cols] = %d,%d \n", name, R, C)
-	         for r := 0; r < R; r++ {
-			          fmt.Printf("\n Row %03d : ", r)
-			           for c := 0; c < C; c++ {
-				                clr := img.GrayAt(c, r).Y
-				                 fmt.Printf("%08b", clr)
-					          }
-					       }
-				  }
+func AsciiPrintBytes(name string, img image.Gray) {
+	b := img.Bounds()
+	R, C := b.Max.Y, b.Max.X
+	fmt.Printf("\n %s = [rows x cols] = %d,%d \n", name, R, C)
+	for r := 0; r < R; r++ {
+		fmt.Printf("\n Row %03d : ", r)
+		for c := 0; c < C; c++ {
+			clr := img.GrayAt(c, r).Y
+			fmt.Printf("%08b", clr)
+		}
+	}
+}
 
 // SetSubFrame sets subset of image at r,c location, assume r,c=8n , column is multiple of 8
 func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
@@ -259,8 +264,8 @@ func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
 	W, H := binimg.Bounds().Dx(), binimg.Bounds().Dy()
 
 	byteimg := Mono2ByteImage(binimg)
-	AsciiPrintBytes("SUBIMAGE",byteimg)	
-	
+	AsciiPrintBytes("SUBIMAGE", byteimg)
+
 	BW := byteimg.Bounds().Dx()
 	hh := H
 	//	BW := 6 // 6*8=48 PIXEL wide
@@ -268,21 +273,21 @@ func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
 	e.setMemArea(uint8(c), uint8(r), uint8(c+BW*8-1), uint8(r+hh-1))
 	log.Println("Rand val ", rval, W, BW)
 
-		e.SetXY(byte(c),byte(r))
+	e.SetXY(byte(c), byte(r))
 
-		e.SendCommand(WRITE_RAM)
-		for row := 0; row < hh; row++ {
+	e.SendCommand(WRITE_RAM)
+	for row := 0; row < hh; row++ {
 		bytearray := make([]byte, BW)
 
 		for col := 0; col < BW; col++ {
-			pixel := byteimg.GrayAt(col,row).Y
+			pixel := byteimg.GrayAt(col, row).Y
 			//			pixel := 0X80
-		//	pixel = 0xAA
+			//	pixel = 0xAA
 			//pixel := rval
 			//	pixel= uint8(rand.Int31n(255))
-		//	if row%2 == 0 {
-		//		pixel = 0xFF
-		//	}
+			//	if row%2 == 0 {
+			//		pixel = 0xFF
+			//	}
 			bytearray[col] = pixel // byte(rval)
 		}
 
@@ -337,7 +342,7 @@ func (e *EPD) SetFrame(byteimg image.Gray) {
 
 	e.SetXY(0, byte(0))
 
-//	e.SendCommand(WRITE_RAM)
+	//	e.SendCommand(WRITE_RAM)
 	for row := 0; row < 200; row++ {
 		bytearray := make([]byte, 25)
 		for col := 0; col < 25; col++ {

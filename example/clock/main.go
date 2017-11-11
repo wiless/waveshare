@@ -4,6 +4,8 @@ import (
 	"image"
 	"image/color"
 
+	"github.com/llgcode/draw2d"
+
 	"github.com/llgcode/draw2d/draw2dimg"
 	"github.com/llgcode/draw2d/draw2dkit"
 
@@ -13,15 +15,16 @@ import (
 var epd ws.EPD
 
 func init() {
-
+	draw2d.SetFontFolder(".")
 }
 func main() {
 	ws.InitHW()
 	epd.Init(true)
+
 	bimg := Background()
-	epd.DisplayFrame()
+	// ws.AsciiPrintByteImage("Background", bimg)
+
 	epd.SetFrame(bimg)
-	ws.AsciiPrintByteImage("Background", bimg)
 	epd.DisplayFrame()
 }
 
@@ -30,10 +33,25 @@ func Background() image.Gray {
 	img := image.NewRGBA(image.Rect(0, 0, 200, 200))
 
 	gc := draw2dimg.NewGraphicContext(img)
-	gc.ClearRect(0, 0, 60, 60)
+	gc.SetFont(ws.EPD_FONT)
+	gc.SetFillColor(color.White)
+	gc.ClearRect(0, 0, 200, 200)
+	gc.FillStroke()
+	gc.Save()
+	gc.SetFillColor(color.White)
+	gc.SetStrokeColor(color.Black)
+	gc.SetLineWidth(2)
+
+	draw2dkit.Rectangle(gc, 0, 0, 60, 60)
+	gc.FillStroke()
+
+	gc.Save()
+
+	gc.SetFontSize(20)
 	gc.SetFillColor(color.Black)
 	gc.SetStrokeColor(color.Black)
-	draw2dkit.Rectangle(gc, 0, 0, 60, 60)
+
+	gc.StrokeStringAt("40", 4, 10)
 	gc.FillStroke()
 
 	mimg := ws.ConvertToGray(img)
