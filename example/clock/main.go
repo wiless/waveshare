@@ -28,13 +28,14 @@ func main() {
 	// ws.AsciiPrintByteImage("Background", bimg)
 	epd.SetFrame(bimg)
 	epd.DisplayFrame()
-	// time.Sleep(1000 * time.Millisecond)
+	time.Sleep(1000 * time.Millisecond)
 	epd.SetFrame(bimg)
+	
 	epd.DisplayFrame()
 	for {
-		Refresh()
 		time.Sleep(1 * time.Second)
-		// epd.DisplayFrame()
+		Refresh()
+		epd.DisplayFrame()
 	}
 }
 
@@ -150,7 +151,5 @@ func Refresh() {
 	gc.Save()
 
 	gimg := ws.ConvertToGray(updateImage)
-
 	epd.SetSubFrame(60, 0, gimg)
-	epd.DisplayFrame()
 }
