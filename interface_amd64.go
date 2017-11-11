@@ -1,5 +1,5 @@
 // Functions related to the HARDWARE configuration
-package waveshare
+package ws
 
 import (
 	"github.com/golang/glog"

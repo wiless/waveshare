@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"os"
@@ -24,37 +23,37 @@ import (
 )
 
 var mono = true
-var epd waveshare.EPD
+var epd ws.EPD
 
 func main() {
-	waveshare.InitHW()
+	ws.InitHW()
 	draw2d.SetFontFolder(".")
 	epd.Init(true)
 	epdimg := ImageGenerate()
-	kavimg := waveshare.LoadImage("kavishbw.jpg")
+	kavimg := ws.LoadImage("kavishbw.jpg")
 	log.Println("Loading kavish..")
-   AsciiPrintByteImage("KAVISH",*kavimg)	
+	ws.AsciiPrintByteImage("KAVISH", *kavimg)
 	UpdateImage(epdimg)
 	time.Sleep(2 * time.Second)
 
 	log.Println("Loading Geometry.....")
 	UpdateImage(epdimg)
-_=kavimg
+	_ = kavimg
 	epd.DisplayFrame()
 	time.Sleep(2 * time.Second)
 	// return
-//	 for {
-//	 	time.Sleep(5 * time.Second)
-//	 	log.Println("Toggling Image...")
-//	 	epd.DisplayFrame()
-//	 }
+	//	 for {
+	//	 	time.Sleep(5 * time.Second)
+	//	 	log.Println("Toggling Image...")
+	//	 	epd.DisplayFrame()
+	//	 }
 
 	_ = epdimg
 	time.Sleep(2 * time.Second)
-	 for {
+	for {
 
-	PartialUpdate()
-	time.Sleep(1 * time.Second)
+		PartialUpdate()
+		time.Sleep(1 * time.Second)
 	}
 
 }
@@ -73,54 +72,17 @@ func PartialUpdate() {
 	gc.SetStrokeColor(color.Black)
 	draw2dkit.Rectangle(gc, 10, 10, 90, 40)
 	gc.SetLineWidth(2)
-	tstr:=time.Now().Format("15:04:05 PM")
+	tstr := time.Now().Format("15:04:05 PM")
 	gc.StrokeStringAt(tstr, 30, 30)
 	gc.Stroke()
 	gc.Save()
 	draw2dimg.SaveToPngFile("subimage.png", timeimg)
-	gimg := ConvertToGray(timeimg)
-	SaveBMP("subimage.bmp", gimg)
-	AsciiPrint("Partial COLOR", timeimg)
-	AsciiPrint("Partial GRAY", gimg)
-	epd.SetSubFrame(40,8, gimg)
+	gimg := ws.ConvertToGray(timeimg)
+	ws.SaveBMP("subimage.bmp", gimg)
+	ws.AsciiPrint("Partial COLOR", timeimg)
+	ws.AsciiPrint("Partial GRAY", gimg)
+	epd.SetSubFrame(40, 8, gimg)
 	epd.DisplayFrame()
-}
-func ConvertToGray(img image.Image) *image.Gray {
-	b := img.Bounds()
-	gimg := image.NewGray(b)
-	var cg color.Gray
-	mono = true
-	for r := 0; r < b.Max.Y; r++ {
-		for c := 0; c < b.Max.X; c++ {
-			oldPixel := img.At(c, r)
-
-			// gscale, _, _, _ := color.GrayModel.Convert(oldPixel).RGBA()
-			cg = color.GrayModel.Convert(oldPixel).(color.Gray)
-
-			// convert to monochrome
-			if mono {
-				if cg.Y > 0 {
-					cg.Y = 255
-				} else {
-					cg.Y = 0
-				}
-
-			}
-			gimg.SetGray(c, r, cg)
-
-		}
-	}
-	return gimg
-}
-
-func SaveBMP(fname string, img image.Image) {
-	fp, fe := os.Create(fname)
-	if fe != nil {
-		glog.Errorln("Unable to Save ", fname)
-		return
-	}
-	bmp.Encode(fp, img)
-	fp.Close()
 }
 
 func ImageGenerate() (epdimg image.Gray) {
@@ -177,7 +139,7 @@ func ImageGenerate() (epdimg image.Gray) {
 	gc.FillStroke()
 	gc.Close()
 
-	AsciiPrint("GEOMETRY ", img)
+	ws.AsciiPrint("GEOMETRY ", img)
 
 	draw2dimg.SaveToPngFile("hello.png", img)
 	f1, _ := os.Create("input.bmp")
@@ -210,13 +172,13 @@ func ImageGenerate() (epdimg image.Gray) {
 		}
 	}
 	///
-	AsciiPrint("GRAY GEOMETRY ", gimg)
+	ws.AsciiPrint("GRAY GEOMETRY ", gimg)
 	////
 
-	epdimg = waveshare.Mono2ByteImage(gimg)
-	// epdimg = waveshare.Mono2ByteImagev2(gimg)
+	epdimg = ws.Mono2ByteImage(gimg)
+	// epdimg = ws.Mono2ByteImagev2(gimg)
 
-	AsciiPrintByteImage("BYTE EPDD ", epdimg)
+	ws.AsciiPrintByteImage("BYTE EPDD ", epdimg)
 
 	f, e := os.Create("output.bmp")
 	glog.Errorln(e)
@@ -225,35 +187,4 @@ func ImageGenerate() (epdimg image.Gray) {
 
 	return epdimg
 
-}
-
-func AsciiPrint(name string, img image.Image) {
-	b := img.Bounds()
-	R, C := b.Max.Y, b.Max.X
-
-	fmt.Printf("\n %s = [rows x cols] = %d,%d \n", name, R, C)
-	for r := 0; r < R; r++ {
-		fmt.Printf("\n Row %03d : ", r)
-		for c := 0; c < C; c++ {
-			clr := img.At(c, r)
-			pix, _, _, _ := clr.RGBA()
-			if pix > 0 {
-				pix = 1
-			}
-			fmt.Printf("%d", pix)
-		}
-	}
-}
-
-func AsciiPrintByteImage(name string, img image.Gray) {
-	b := img.Bounds()
-	R, C := b.Max.Y, b.Max.X
-	fmt.Printf("\n %s = [rows x cols] = %d,%d \n", name, R, C)
-	for r := 0; r < R; r++ {
-		fmt.Printf("\n Row %03d : ", r)
-		for c := 0; c < C; c++ {
-			clr := img.GrayAt(c, r).Y
-			fmt.Printf("%08b", clr)
-		}
-	}
 }

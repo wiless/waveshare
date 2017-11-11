@@ -1,5 +1,5 @@
-// Package waveshare implements functions  to communication, commands protocols for the EPD
-package waveshare
+// Package ws implements functions  to communication, commands protocols for the EPD
+package ws
 
 import (
 	"flag"

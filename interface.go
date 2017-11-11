@@ -1,5 +1,5 @@
 // Functions related to the HARDWARE configuration
-package waveshare
+package ws
 
 // # Pin definition
 var RST_PIN = 17  // GPIO_17

@@ -1,4 +1,4 @@
-package waveshare
+package ws
 
 import (
 	"log"
