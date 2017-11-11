@@ -264,7 +264,7 @@ func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
 	W, H := binimg.Bounds().Dx(), binimg.Bounds().Dy()
 
 	byteimg := Mono2ByteImage(binimg)
-	AsciiPrintBytes("SUBIMAGE", byteimg)
+	// AsciiPrintBytes("SUBIMAGE", byteimg)
 
 	BW := byteimg.Bounds().Dx()
 	hh := H

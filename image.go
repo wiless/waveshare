@@ -26,15 +26,36 @@ func LoadImage(ifname string) (byteimg *image.Gray) {
 		fmt.Println("File Read Error ", e)
 		return nil
 	}
-
-	img, e := jpeg.Decode(f)
-
+	cfg, str, e := image.DecodeConfig(f)
 	if e != nil {
-		log.Println("Decode Error, trying png ", e)
-		img, e = png.Decode(f)
-		if e != nil {
-			log.Panic("Decode Error ", e)
+		log.Println("Error Decoding file ", e, str, cfg)
+		return nil
+	}
+
+	var img image.Image
+	log.Println("Found ", cfg)
+	switch str {
+	case "jpeg":
+		{
+			f.Close()
+			f, _ = os.Open(ifname)
+			img, e = jpeg.Decode(f)
+			if e != nil {
+				log.Println("Decode Error, trying jpg ", e)
+			}
 		}
+	case "png":
+		{
+			f.Close()
+			f, _ = os.Open(ifname)
+			img, e = png.Decode(f)
+			if e != nil {
+				log.Println("Decode Error, trying png ", e)
+				return nil
+			}
+		}
+	default:
+		log.Println("Unknown Image type ", str)
 		return nil
 	}
 
@@ -56,8 +77,9 @@ func LoadImage(ifname string) (byteimg *image.Gray) {
 
 			for col := 0; col < 200; col++ {
 				c := img.At(col, row)
-				r, g, b, _ := c.RGBA()
-				if r > 0 || g > 0 || b > 0 {
+
+				r, g, b, a := c.RGBA()
+				if r > 0 || g > 0 || b > 0 || a > 0 {
 					bitstr[bitcount] = "1"
 				} else {
 					bitstr[bitcount] = "0"
