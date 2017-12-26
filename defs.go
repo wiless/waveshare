@@ -197,7 +197,7 @@ func (e *EPD) DisplayFrame() {
 	} else {
 		e.screen = 0
 	}
-
+	log.Println("Current SCREEN  ", e.screen)
 	e.CallFunction(DISPLAY_UPDATE_CONTROL_2, 0xC4)
 	e.CallFunction(MASTER_ACTIVATION)
 	e.CallFunction(TERMINATE_FRAME_READ_WRITE)
