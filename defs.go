@@ -57,6 +57,7 @@ type EPD struct {
 	// Sequence for updating
 	lutFullUpdate    []byte
 	lutPartialUpdate []byte
+	screen           int
 }
 
 func (e *EPD) SetDefaults() {
@@ -139,7 +140,7 @@ func (e *EPD) reset() {
 	time.Sleep(200)
 	embd.DigitalWrite(RST_PIN, embd.High)
 	time.Sleep(200)
-
+	screen = 0
 }
 
 //
@@ -179,6 +180,10 @@ func (e *EPD) Sleep(full bool) {
 	//  self.send_command(DEEP_SLEEP_MODE)
 }
 
+func (e *EPD) Screen() int {
+	return e.screen
+}
+
 // ##
 //  #  @brief: update the display
 //  #          there are 2 memory areas embedded in the e-paper display
@@ -187,6 +192,12 @@ func (e *EPD) Sleep(full bool) {
 //  #          set the other memory area.
 //  ##
 func (e *EPD) DisplayFrame() {
+	if e.screen == 0 {
+		screen = 1 // next frame where image will be set
+	} else {
+		screen = 0
+	}
+
 	e.CallFunction(DISPLAY_UPDATE_CONTROL_2, 0xC4)
 	e.CallFunction(MASTER_ACTIVATION)
 	e.CallFunction(TERMINATE_FRAME_READ_WRITE)
@@ -296,6 +307,46 @@ func (e *EPD) SetSubFrame(r, c int, binimg *image.Gray) {
 
 	e.wait()
 	e.DisplayFrame()
+}
+
+// SetSubFrame sets subset of image at r,c location, assume r,c=8n , column is multiple of 8
+func (e *EPD) FillSubFrame(r, c int, binimg *image.Gray) {
+
+	W, H := binimg.Bounds().Dx(), binimg.Bounds().Dy()
+
+	byteimg := Mono2ByteImage(binimg)
+	// AsciiPrintBytes("SUBIMAGE", byteimg)
+	_ = W
+	BW := byteimg.Bounds().Dx()
+	hh := H
+	//	BW := 6 // 6*8=48 PIXEL wide
+
+	e.setMemArea(uint8(c), uint8(r), uint8(c+BW*8-1), uint8(r+hh-1))
+	//	log.Println("Rand val ", rval, W, BW)
+
+	e.SetXY(byte(c), byte(r))
+
+	e.SendCommand(WRITE_RAM)
+	for row := 0; row < hh; row++ {
+		bytearray := make([]byte, BW)
+
+		for col := 0; col < BW; col++ {
+			pixel := byteimg.GrayAt(col, row).Y
+			//			pixel := 0X80
+			//	pixel = 0xAA
+			//pixel := rval
+			//	pixel= uint8(rand.Int31n(255))
+			//	if row%2 == 0 {
+			//		pixel = 0xFF
+			//	}
+			bytearray[col] = pixel // byte(rval)
+		}
+
+		e.SendData(bytearray...)
+	}
+
+	e.wait()
+	// e.DisplayFrame()
 }
 
 func (e *EPD) DrawLine(row int, thick int, color uint8) {
