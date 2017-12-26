@@ -140,7 +140,7 @@ func (e *EPD) reset() {
 	time.Sleep(200)
 	embd.DigitalWrite(RST_PIN, embd.High)
 	time.Sleep(200)
-	screen = 0
+	e.screen = 0
 }
 
 //
@@ -193,9 +193,9 @@ func (e *EPD) Screen() int {
 //  ##
 func (e *EPD) DisplayFrame() {
 	if e.screen == 0 {
-		screen = 1 // next frame where image will be set
+		e.screen = 1 // next frame where image will be set
 	} else {
-		screen = 0
+		e.screen = 0
 	}
 
 	e.CallFunction(DISPLAY_UPDATE_CONTROL_2, 0xC4)
