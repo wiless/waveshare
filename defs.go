@@ -140,7 +140,7 @@ func (e *EPD) reset() {
 	time.Sleep(200)
 	embd.DigitalWrite(RST_PIN, embd.High)
 	time.Sleep(200)
-	e.screen = 0
+
 }
 
 //
@@ -165,7 +165,7 @@ func (e *EPD) wait() {
 		if err != nil {
 			log.Panic("Error waiting BUSY_PIN", err)
 		}
-		time.Sleep(100) // polling for every 100ms
+		time.Sleep(100 * time.Millisecond) // polling for every 100ms
 	}
 
 }
