@@ -137,9 +137,9 @@ func (e *EPD) Init(full bool) {
 //reset - module reset.often used to awaken the module in deep sleep,
 func (e *EPD) reset() {
 	embd.DigitalWrite(RST_PIN, embd.Low)
-	time.Sleep(200)
+	time.Sleep(200 * time.Millisecond)
 	embd.DigitalWrite(RST_PIN, embd.High)
-	time.Sleep(200)
+	time.Sleep(200 * time.Millisecond)
 
 }
 
