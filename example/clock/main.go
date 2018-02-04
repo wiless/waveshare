@@ -27,11 +27,8 @@ func main() {
 	bimg := Background()
 	// ws.AsciiPrintByteImage("Background", bimg)
 	epd.SetFrame(bimg)
-	epd.DisplayFrame()
-	time.Sleep(1000 * time.Millisecond)
+	time.Sleep(1 * time.Second)
 	epd.SetFrame(bimg)
-	
-	epd.DisplayFrame()
 	for {
 		time.Sleep(1 * time.Second)
 		Refresh()
