@@ -13,6 +13,7 @@ import (
 
 	"github.com/golang/freetype/truetype"
 	"github.com/golang/glog"
+	// "github.com/golang/glog"
 	"golang.org/x/image/font/gofont/goregular"
 
 	"github.com/kidoman/embd"

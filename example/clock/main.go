@@ -12,7 +12,7 @@ import (
 	"github.com/llgcode/draw2d/draw2dimg"
 	"github.com/llgcode/draw2d/draw2dkit"
 
-	"github.com/wiless/waveshare"
+	ws "github.com/wiless/waveshare"
 )
 
 var epd ws.EPD
@@ -27,11 +27,12 @@ func main() {
 	bimg := Background()
 	// ws.AsciiPrintByteImage("Background", bimg)
 	epd.SetFrame(bimg)
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 	epd.SetFrame(bimg)
 	for {
-		time.Sleep(1 * time.Second)
-		Refresh()
+		// time.Sleep(1 * time.Second)
+		// updateTime()
+		updateTimeBox()
 		epd.DisplayFrame()
 	}
 }
@@ -60,30 +61,32 @@ func Background() image.Gray {
 	gc.SetStrokeColor(color.Black)
 	gc.SetLineWidth(2)
 
-	draw2dkit.Rectangle(gc, 0, 0, 90, 60)
+	draw2dkit.Rectangle(gc, 0, 0, 130, 60)
 
 	gc.FillStroke()
 	gc.Save()
-	gc.SetFontSize(20)
-	gc.SetLineWidth(4)
-	gc.SetFillColor(color.Black)
-	gc.SetStrokeColor(color.Black)
-	gc.StrokeStringAt("40", 15, 30)
-	gc.FillStroke()
+
+	// gc.SetFontSize(20)
+	// gc.SetLineWidth(4)
+	// gc.SetFillColor(color.Black)
+	// gc.SetStrokeColor(color.Black)
+	// gc.StrokeStringAt("2021", 15, 30)
+	// gc.FillStroke()
 
 	// Display Date & Day
-	gc.SetFontSize(15)
+	gc.SetFontSize(17)
 	gc.SetLineWidth(3)
 	gc.SetFillColor(color.Black)
 	gc.SetStrokeColor(color.Black)
 	now := time.Now()
 	datestr := fmt.Sprintf("%s", now.Format("Jan 02"))
-	gc.StrokeStringAt(datestr, 100, 20)
+	gc.StrokeStringAt(datestr, 132, 20)
 	gc.FillStroke()
-	gc.SetFontSize(20)
 
+	gc.SetFontSize(12)
 	datestr = fmt.Sprintf("%s", now.Format("Monday"))
-	gc.StrokeStringAt(datestr, 100, 45)
+
+	gc.StrokeStringAt(datestr, 132, 45)
 	gc.FillStroke()
 	gc.Save()
 	gc.SetStrokeColor(color.Black)
@@ -94,9 +97,9 @@ func Background() image.Gray {
 	gc.LineTo(200, 60)
 	gc.FillStroke()
 
-	/// Show Time
+	// /// Show Time
 	// gc.SetFontSize(40)
-	// gc.SetLineWidth(7)
+	// // gc.SetLineWidth(7)
 	// datestr = fmt.Sprintf("%s", now.Format("15:04:05"))
 	// left, top, right, bottom := gc.GetStringBounds(datestr)
 	// height := bottom - top
@@ -104,21 +107,22 @@ func Background() image.Gray {
 	// gc.SetStrokeColor(color.Black)
 	// gc.SetFillColor(color.Black)
 
-	// log.Println("Locations left,top,right,bottom,height,width", left, top, right, bottom, height, width)
-	// log.Println("Position is ", 100-width/2, 80+70-height/2)
+	// // log.Println("Locations left,top,right,bottom,height,width", left, top, right, bottom, height, width)
+	// // log.Println("Position is ", 100-width/2, 80+70-height/2)
 	// gc.StrokeStringAt(datestr, 100-width/2, 80+70-height/2)
 	// gc.FillStroke()
 	// gc.Save()
 
 	// load cloud image
 	// png.Decode()
+
 	gc.Close()
 	mimg := ws.ConvertToGray(img)
 	bimg := ws.Mono2ByteImagev2(mimg)
 	return bimg
 }
 
-func Refresh() {
+func updateTime() {
 
 	epd.Init(false)
 	updateImage := image.NewRGBA(image.Rect(0, 0, 200, 140))
@@ -141,12 +145,49 @@ func Refresh() {
 	gc.SetStrokeColor(color.Black)
 	gc.SetFillColor(color.Black)
 
-	log.Println("Locations left,top,right,bottom,height,width", left, top, right, bottom, height, width)
-	log.Println("Position is ", 100-width/2, 70-height/2)
+	// log.Println("Locations left,top,right,bottom,height,width", left, top, right, bottom, height, width)
+	// log.Println("Position is ", 100-width/2, 70-height/2)
 	gc.StrokeStringAt(datestr, 100-width/2, 70-height/2)
 	gc.FillStroke()
 	gc.Save()
 
 	gimg := ws.ConvertToGray(updateImage)
 	epd.SetSubFrame(60, 0, gimg)
+}
+
+func updateTimeBox() {
+
+	epd.Init(false)
+	updateImage := image.NewRGBA(image.Rect(0, 0, 130, 60))
+	WIDTH := 130.0 / 2
+	HEIGHT := 60.0 / 2
+	gc := draw2dimg.NewGraphicContext(updateImage)
+	gc.SetFont(ws.EPD_FONT)
+	gc.SetFillColor(color.White)
+	gc.SetStrokeColor(color.Black)
+
+	gc.ClearRect(2, 2, 130, 60)
+	gc.FillStroke()
+	gc.Save()
+
+	/// Show Time
+	gc.SetFontSize(23)
+	gc.SetLineWidth(4)
+	now := time.Now()
+	datestr := fmt.Sprintf("%s", now.Format("03:04:05")) // PM
+	left, top, right, bottom := gc.GetStringBounds(datestr)
+	height := bottom - top
+	width := right - left
+	gc.SetStrokeColor(color.Black)
+	gc.SetFillColor(color.Black)
+
+	log.Println("Locations left,top,right,bottom,height,width", left, top, right, bottom, height, width)
+	log.Println("Position is ", WIDTH-width/2, HEIGHT-height/2)
+	gc.StrokeStringAt(datestr, WIDTH-width/2, HEIGHT-height/20-top/2)
+	// gc.StrokeStringAt(datestr, 2, 25)
+	gc.FillStroke()
+	gc.Save()
+
+	gimg := ws.ConvertToGray(updateImage)
+	epd.SetSubFrame(0, 0, gimg)
 }
