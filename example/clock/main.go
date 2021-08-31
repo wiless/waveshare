@@ -5,6 +5,8 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/llgcode/draw2d"
@@ -89,8 +91,8 @@ func Background() image.Gray {
 	gc.StrokeStringAt(datestr, 132, 45)
 	gc.FillStroke()
 	gc.Save()
-	gc.SetStrokeColor(color.Black)
 
+	gc.SetStrokeColor(color.Black)
 	gc.SetFillColor(color.White)
 	gc.SetLineWidth(2)
 	gc.MoveTo(0, 60)
@@ -115,6 +117,15 @@ func Background() image.Gray {
 
 	// load cloud image
 	// png.Decode()
+
+	gc.SetFontSize(15)
+	gc.SetLineWidth(3)
+	msg := "This is good to render in two lines"
+
+	if len(os.Args) > 1 {
+		msg = os.Args[1]
+	}
+	wrapText(gc, msg, 0, 64, 200)
 
 	gc.Close()
 	mimg := ws.ConvertToGray(img)
@@ -190,4 +201,36 @@ func updateTimeBox() {
 
 	gimg := ws.ConvertToGray(updateImage)
 	epd.SetSubFrame(0, 0, gimg)
+}
+
+// wrap text
+func wrapText(gc *draw2dimg.GraphicContext, text string, x, y, maxWidth float64) {
+	words := strings.Split(text, " ")
+	line := ""
+	fmt.Println("Words ", words)
+	var left, top, right, bottom float64
+	for n := 0; n < len(words); n++ {
+		testLine := line + words[n] + " "
+		//   var metrics = gc.GetStringBounds(testLine);
+
+		left, top, right, bottom = gc.GetStringBounds(testLine)
+		height := bottom - top
+		width := right - left
+		if n == 0 {
+			y = y - top
+		}
+		testWidth := width
+		if testWidth > maxWidth && n > 0 {
+			// gc.fillText(line, x, y);
+			gc.StrokeStringAt(line, x, y)
+			line = words[n] + " "
+			y += height //lineHeight
+		} else {
+			line = testLine
+		}
+	}
+	gc.StrokeStringAt(line, x, y)
+	// context.fillText(line, x, y);
+	gc.FillStroke()
+
 }

@@ -13,6 +13,7 @@ import (
 
 	"github.com/golang/freetype/truetype"
 	"github.com/golang/glog"
+
 	// "github.com/golang/glog"
 	"golang.org/x/image/font/gofont/goregular"
 
@@ -392,7 +393,7 @@ func (e *EPD) SetFrame(byteimg image.Gray) {
 	// rr := int(y1 - y0 + 1)
 	// cc := int(x1 - x0 + 1)
 
-	e.SetXY(0, byte(0))
+	e.SetXY(0, 0)
 
 	//	e.SendCommand(WRITE_RAM)
 	for row := 0; row < 200; row++ {
