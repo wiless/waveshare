@@ -34,7 +34,7 @@ func main() {
 	for {
 		// time.Sleep(1 * time.Second)
 		// updateTime()
-		updateTimeBox()
+			updateTimeBox()
 		epd.DisplayFrame()
 	}
 }
