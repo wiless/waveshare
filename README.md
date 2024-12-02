@@ -21,3 +21,6 @@ DC_PIN = 25   // GPIO_25
 CS_PIN = 8    // GPIO_8
 BUSY_PIN = 24 // GPIO_24
 ```
+
+Pin Diagram Reference
+![image](https://github.com/user-attachments/assets/78c9c248-05a2-4f2b-a25a-73f9a9fa9831)
