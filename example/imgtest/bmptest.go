@@ -15,9 +15,6 @@ import (
 	"golang.org/x/image/bmp"
 )
 
-// / SPI related functions
-// var spibus embd.SPIBus
-
 const (
 	channel = 0
 	speed   = 2000000
@@ -28,11 +25,6 @@ const (
 func main() {
 	fmt.Printf("bmp tools")
 	//	LoadImage("foodklubbw.jpg", "IMAGE_DATA")
-
-	// if err := embd.InitSPI(); err != nil {
-	// 	log.Println("Unable to Init SPI ", err)
-	// }
-	// spibus = embd.NewSPIBus(embd.SPIMode0, channel, speed, bpw, delay)
 
 }
 

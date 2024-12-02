@@ -68,7 +68,6 @@ func WriteBytes(data []byte) {
 }
 
 func CloseHW() {
-	// embd.CloseSPI()
 	spibus.Close()
 
 }
@@ -95,23 +94,12 @@ func initGPIO() {
 var spibus SPIbus
 
 func initSPI() {
-	//     SPI.max_speed_hz = 2000000
-	//     SPI.mode = 0b00
-	// # SPI device, bus = 0, device = 0
-	// SPI = spidev.SpiDev(0, 0)
-	// if err := embd.InitSPI(); err != nil {
-	// 	log.Println("Unable to Init SPI ", err)
-	// }
-	// spibus = embd.NewSPIBus(embd.SPIMode0, channel, speed, bpw, delay)
-
-	// Configure SPI settings (mode 0, 8 bits per word)
 
 	spibus.Init()
 
 }
 
 func writeCmd(cmd byte) {
-	// if err := embd.DigitalWrite(DC_PIN, embd.Low); err == nil {
 	if err := DigitalWrite(DC_PIN, gpio.Low); err == nil {
 		// spibus.Write([]byte{cmd})
 		// defSPI.Write()
@@ -127,7 +115,6 @@ func writeCmd(cmd byte) {
 
 func writeData(data ...byte) {
 
-	// if err := embd.DigitalWrite(DC_PIN, embd.High); err == nil {
 	if err := DigitalWrite(DC_PIN, gpio.High); err == nil {
 		if _, e := spibus.Write(data); e != nil {
 			log.Printf("SPI Write Error : %v", e)

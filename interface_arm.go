@@ -59,9 +59,6 @@ func (s *SPIbus) Init() error {
 
 }
 
-// / SPI related functions
-// var spibus embd.SPIBus
-
 func init() {
 	log.Panicln("ARM mode..")
 }
@@ -71,7 +68,6 @@ func WriteBytes(data []byte) {
 }
 
 func CloseHW() {
-	// embd.CloseSPI()
 	spibus.Close()
 
 }
@@ -92,16 +88,6 @@ func DigitalWrite(pin int, level gpio.Level) error {
 func initGPIO() {
 
 	host.Init() // moving periph.io ( suppoerts recent kernel)
-
-	// embd.SetDirection(RST_PIN, embd.Out)
-	// embd.SetDirection(DC_PIN, embd.Out)
-	// embd.SetDirection(CS_PIN, embd.Out)
-	// embd.SetDirection(BUSY_PIN, embd.In)
-
-	// GPIO.setup(RST_PIN, GPIO.OUT)
-	// GPIO.setup(DC_PIN, GPIO.OUT)
-	// GPIO.setup(CS_PIN, GPIO.OUT)
-	// GPIO.setup(BUSY_PIN, GPIO.IN)
 
 }
 
