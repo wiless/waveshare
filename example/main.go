@@ -88,14 +88,17 @@ func main() {
 	} else {
 		epdimg := ImageGenerate()
 		imageframes = append(imageframes, epdimg)
+		UpdateImage(epdimg)
 		// NOT updated to DISPLAY buffer !!
 	}
 
 	// IF only one image.. upate time on partial area
 	if len(imageframes) == 1 {
 		for {
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(1000 * time.Millisecond)
 			PartialUpdate()
+			// epd.DisplayFrame()
+			// epd.DisplayFrame()
 		}
 
 	}
@@ -112,7 +115,7 @@ func main() {
 	if len(imageframes) > 2 {
 		cnt := 0
 		for {
-			time.Sleep(2 * time.Second)
+			time.Sleep(3 * time.Second)
 			log.Println("Next Image...")
 			UpdateImage(imageframes[cnt])
 			cnt++
@@ -244,7 +247,7 @@ func ImageGenerate() (epdimg image.Gray) {
 	epdimg = ws.Mono2ByteImage(gimg)
 	// epdimg = ws.Mono2ByteImagev2(gimg)
 
-	//	ws.AsciiPrintByteImage("BYTE EPDD ", epdimg)
+	ws.AsciiPrintByteImage("BYTE EPDD ", epdimg)
 
 	f, e := os.Create("output.bmp")
 	glog.Errorln(e)

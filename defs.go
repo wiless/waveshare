@@ -13,11 +13,11 @@ import (
 
 	"github.com/golang/freetype/truetype"
 	"github.com/golang/glog"
+	"periph.io/x/conn/v3/gpio"
+	"periph.io/x/conn/v3/gpio/gpioreg"
 
 	// "github.com/golang/glog"
 	"golang.org/x/image/font/gofont/goregular"
-
-	"github.com/kidoman/embd"
 )
 
 // # Display resolution
@@ -52,6 +52,7 @@ var TERMINATE_FRAME_READ_WRITE byte = 0xFF
 func init() {
 	flag.Parse()
 	EPD_FONT, _ = truetype.Parse(goregular.TTF)
+
 }
 
 type EPD struct {
@@ -136,17 +137,31 @@ func (e *EPD) Init(full bool) {
 
 }
 
-//reset - module reset.often used to awaken the module in deep sleep,
+func digitalWrite(pin int, level gpio.Level) error {
+	pinname := fmt.Sprintf("GPIO%d", pin)
+	gpin := gpioreg.ByName(pinname)
+	// p := gpioreg.ByName(gpiname)
+	return gpin.Out(level)
+}
+
+func digitalRead(pin int) (gpio.Level, error) {
+	pinname := fmt.Sprintf("GPIO%d", pin)
+	gpin := gpioreg.ByName(pinname)
+	// p := gpioreg.ByName(gpiname)
+	level := gpin.Read()
+	return level, nil
+}
+
+// reset - module reset.often used to awaken the module in deep sleep,
 func (e *EPD) reset() {
-	embd.DigitalWrite(RST_PIN, embd.Low)
+	digitalWrite(RST_PIN, gpio.Low)
 	time.Sleep(200 * time.Millisecond)
-	embd.DigitalWrite(RST_PIN, embd.High)
+	digitalWrite(RST_PIN, gpio.High)
 	time.Sleep(200 * time.Millisecond)
 
 }
 
-//
-//   @brief: set the look-up table register
+// @brief: set the look-up table register
 func (e *EPD) setLookupTable(full bool) {
 	e.lutFull = full
 
@@ -161,12 +176,13 @@ func (e *EPD) setLookupTable(full bool) {
 // Ensure to wait before any next command is executed.. monitors the
 // BUSY_PIN
 func (e *EPD) wait() {
-	var busy int
+	var busy gpio.Level
 	var err error
-	for ; busy == 1; busy, err = embd.DigitalRead(BUSY_PIN) {
+	for ; busy == gpio.High; busy, err = digitalRead(BUSY_PIN) {
 		if err != nil {
 			log.Panic("Error waiting BUSY_PIN", err)
 		}
+		log.Printf("Level", busy)
 		time.Sleep(100 * time.Millisecond) // polling for every 100ms
 	}
 
@@ -187,12 +203,13 @@ func (e *EPD) Screen() int {
 }
 
 // ##
-//  #  @brief: update the display
-//  #          there are 2 memory areas embedded in the e-paper display
-//  #          but once this function is called,
-//  #          the the next action of SetFrameMemory or ClearFrame will
-//  #          set the other memory area.
-//  ##
+//
+//	#  @brief: update the display
+//	#          there are 2 memory areas embedded in the e-paper display
+//	#          but once this function is called,
+//	#          the the next action of SetFrameMemory or ClearFrame will
+//	#          set the other memory area.
+//	##
 func (e *EPD) DisplayFrame() {
 	if e.screen == 0 {
 		e.screen = 1 // next frame where image will be set
@@ -207,7 +224,9 @@ func (e *EPD) DisplayFrame() {
 }
 
 // ##
-//  #  @brief: specify the memory area for data R/W
+//
+//	#  @brief: specify the memory area for data R/W
+//
 // def set_memory_area(self, x_start, y_start, x_end, y_end)
 func (e *EPD) setMemArea(x0, y0, x1, y1 byte) {
 	//   x point must be the multiple of 8 or the last 3 bits will be ignored
@@ -216,8 +235,8 @@ func (e *EPD) setMemArea(x0, y0, x1, y1 byte) {
 }
 
 /*
-   @brief: specify the start point for data R/W in the memory
-   //set_memory_pointer()
+@brief: specify the start point for data R/W in the memory
+//set_memory_pointer()
 */
 func (e *EPD) SetXY(x, y byte) {
 	e.CallFunction(SET_RAM_X_ADDRESS_COUNTER, (x>>3)&0xFF)
@@ -226,8 +245,9 @@ func (e *EPD) SetXY(x, y byte) {
 }
 
 // #
-//  #  @brief: clear the frame memory with the specified color.
-//  #          this won't update the display.
+//
+//	#  @brief: clear the frame memory with the specified color.
+//	#          this won't update the display.
 func (e *EPD) ClearFrame(color byte) {
 	e.setMemArea(0, 0, EPD_WIDTH-1, EPD_HEIGHT-1)
 	//	e.setMemArea(0, 0, 200,200)
@@ -242,8 +262,10 @@ func (e *EPD) ClearFrame(color byte) {
 }
 
 // ##
-//  #  @brief: convert an image to a buffer
-//  ## Generates a Byte Buffer
+//
+//	#  @brief: convert an image to a buffer
+//	## Generates a Byte Buffer
+//
 // def get_frame_buffer(self, image):
 func (e *EPD) GetFrame() *image.Gray {
 	img := image.NewGray(image.Rect(0, 0, int(EPD_WIDTH), int(EPD_HEIGHT)))
@@ -368,8 +390,8 @@ func (e *EPD) DrawLine(row int, thick int, color uint8) {
 
 }
 
-//  #  @brief: put an (SUB) image to the frame memory.
-//  #          this won't update the display.
+// #  @brief: put an (SUB) image to the frame memory.
+// #          this won't update the display.
 func (e *EPD) SetFrame(byteimg image.Gray) {
 	w, h := byte(byteimg.Bounds().Dx()), byte(byteimg.Bounds().Dy())
 	if h < 200 || w < 25 {
@@ -420,7 +442,7 @@ func (e *EPD) WriteBytePixel(row, col byte, pixel ...byte) {
 
 }
 
-//Image2Byte assumes binary image of size R*C = R*(C/8)
+// Image2Byte assumes binary image of size R*C = R*(C/8)
 func Mono2ByteImage(img *image.Gray) (byteimg image.Gray) {
 	return Mono2ByteImagev2(img)
 	R := img.Rect.Dy()
@@ -469,7 +491,7 @@ func logme(info string, e error) {
 	}
 }
 
-//Image2Byte assumes binary image of size R*C = R*(C/8)
+// Image2Byte assumes binary image of size R*C = R*(C/8)
 func Mono2ByteImagev2(img *image.Gray) (byteimg image.Gray) {
 	b := img.Bounds()
 	R := b.Dy()

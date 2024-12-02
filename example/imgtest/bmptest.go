@@ -10,13 +10,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kidoman/embd"
 	"github.com/lucasb-eyer/go-colorful"
 
 	"golang.org/x/image/bmp"
 )
-/// SPI related functions
-var spibus embd.SPIBus
+
+// / SPI related functions
+// var spibus embd.SPIBus
 
 const (
 	channel = 0
@@ -27,12 +27,12 @@ const (
 
 func main() {
 	fmt.Printf("bmp tools")
-//	LoadImage("foodklubbw.jpg", "IMAGE_DATA")
+	//	LoadImage("foodklubbw.jpg", "IMAGE_DATA")
 
-	if err := embd.InitSPI(); err != nil {
-		log.Println("Unable to Init SPI ", err)
-	}
-	spibus = embd.NewSPIBus(embd.SPIMode0, channel, speed, bpw, delay)
+	// if err := embd.InitSPI(); err != nil {
+	// 	log.Println("Unable to Init SPI ", err)
+	// }
+	// spibus = embd.NewSPIBus(embd.SPIMode0, channel, speed, bpw, delay)
 
 }
 
@@ -189,7 +189,6 @@ func SaveArray(fname string) {
 	f.Close()
 }
 
-//
 // /* 0x00,0x01,0xC8,0x00,0xC8,0x00, */
 var IMAGE_DATA []byte = []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x8F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 	0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,

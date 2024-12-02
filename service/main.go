@@ -3,23 +3,31 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hashicorp/mdns"
 	"github.com/llgcode/draw2d"
 	ws "github.com/wiless/waveshare"
 )
 
-var PORT string
+var PORT int
 
 func init() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		PORT = ":9090"
+		PORT = 9090
+	} else {
+		if num, er := strconv.Atoi(port); er != nil {
+			PORT = num
+		}
 	}
-	initEPD()
 
+	initEPD()
+	mDNSServer()
 }
 
 var Err = func(e error) {
@@ -54,7 +62,9 @@ func main() {
 		updateTimeBox(0)
 		epd.DisplayFrame()
 	})
-	g.Run(PORT)
+
+	g.Run(fmt.Sprintf(":%d", PORT))
+
 }
 
 var epd ws.EPD
@@ -79,3 +89,15 @@ func initEPD() {
 // 		epd.DisplayFrame()
 // 	}
 // }
+var server *mdns.Server
+
+func mDNSServer() {
+	// Setup our service export
+	host, _ := os.Hostname()
+	info := []string{"ePaper Display", "/startclock", "/updateepd"}
+	service, _ := mdns.NewMDNSService(host, "_epaper._tcp", "", "", PORT, nil, info)
+	log.Print("Started mDNSserver...")
+	// Create the mDNS server, defer shutdown
+	server, _ = mdns.NewServer(&mdns.Config{Zone: service})
+
+}

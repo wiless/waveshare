@@ -1,4 +1,4 @@
-//Package ws - Utility functions to handle image
+// Package ws - Utility functions to handle image
 package ws
 
 import (
@@ -14,9 +14,6 @@ import (
 
 	"github.com/golang/glog"
 	"golang.org/x/image/bmp"
-	//	"github.com/kidoman/embd"
-	//	"github.com/lucasb-eyer/go-colorful"
-	//	"golang.org/x/image/bmp"
 )
 
 func LoadImage(ifname string) (byteimg *image.Gray) {

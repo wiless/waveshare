@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/png"
+	// "image/png"
 	"log"
 	"os"
 	"strconv"
+	_ "image/png"
+	_ "image/jpeg"
 	// ws "github.com/wiless/waveshare"
 )
 
@@ -21,6 +23,7 @@ var Err = func(e error) {
 
 var ifname string
 var ofname string
+var invert bool
 
 var encodeCmd *flag.FlagSet
 var decodeCmd *flag.FlagSet
@@ -30,17 +33,19 @@ var cmd string
 func init() {
 
 	encodeCmd := flag.NewFlagSet("encode", flag.ExitOnError)
-
 	encodeCmd.StringVar(&ifname, "image", "", "input image filename -image=abcd.png")
+	encodeCmd.BoolVar(&invert, "invert", false, "invert the gray scale")
 	encodeCmd.StringVar(&ofname, "output", "", "epd output filename -output=abcd.epd")
 	encodeCmd.UintVar(&threshold, "threshold", 128, "Threshold [0,255] for 0/1 for gray scale images -threshold=128")
 
 	decodeCmd := flag.NewFlagSet("decode ", flag.ExitOnError)
 	decodeCmd.StringVar(&ifname, "epdfile", "", "Input EPD filename -epdfile=abcd.epd")
+	
+	flag.Parse()
 
 	if len(os.Args) == 1 {
 		// cmd = "encode"
-		// flag.Parse()
+		flag.Parse()
 		var fn = os.Args[0]
 		fmt.Println(fn + " encode <OPTIONS>")
 		encodeCmd.PrintDefaults()
@@ -94,12 +99,17 @@ func main() {
 func encode(fname string, ofname string) {
 	f, err := os.Open(fname)
 	Err(err)
-	img, e := png.Decode(f)
+	
+	img,ftype, e := image.Decode(f)
+	
 	Err(e)
-	fmt.Printf("%#v", img.Bounds().Max)
-
+	
+	
 	// bitimage := toGray(img)
 	b := img.Bounds()
+	fmt.Printf("%s : %#v",ftype,b.Max )
+
+
 	gimg := image.NewGray(b)
 	var cg color.Gray
 	mono := true
@@ -114,9 +124,19 @@ func encode(fname string, ofname string) {
 			// convert to monochrome
 			if mono {
 				if cg.Y > uint8(threshold) {
-					cg.Y = 255
+					if invert{
+						cg.Y = 0
+					}else{
+						cg.Y = 255
+					}
+					
 				} else {
-					cg.Y = 0
+					if invert{
+						cg.Y = 255
+					}else{
+						cg.Y = 0
+					}
+					
 				}
 
 			}

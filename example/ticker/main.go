@@ -4,12 +4,10 @@ import (
 	"github.com/wiless/waveshare"
 )
 
-func main()  {
+func main() {
 	waveshare.InitHW()
 	var epd waveshare.EPD
 	epd.Init(false)
-	
-    image = Image.open('monocolor.bmp')
+
+	// image = Image.open('monocolor.bmp')
 }
-	
-	

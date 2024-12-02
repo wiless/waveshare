@@ -59,11 +59,8 @@ func (s *SPIbus) Init() error {
 
 }
 
-// / SPI related functions
-// var spibus embd.SPIBus
-
 func init() {
-	log.Panicln("ARM mode..")
+	log.Println("Done aarch64")
 }
 
 func WriteBytes(data []byte) {
@@ -77,6 +74,7 @@ func CloseHW() {
 }
 
 func InitHW() {
+
 	initGPIO()
 	initSPI()
 }
@@ -90,36 +88,54 @@ func DigitalWrite(pin int, level gpio.Level) error {
 }
 
 func initGPIO() {
-
-	host.Init() // moving periph.io ( suppoerts recent kernel)
-
-	// embd.SetDirection(RST_PIN, embd.Out)
-	// embd.SetDirection(DC_PIN, embd.Out)
-	// embd.SetDirection(CS_PIN, embd.Out)
-	// embd.SetDirection(BUSY_PIN, embd.In)
-
-	// GPIO.setup(RST_PIN, GPIO.OUT)
-	// GPIO.setup(DC_PIN, GPIO.OUT)
-	// GPIO.setup(CS_PIN, GPIO.OUT)
-	// GPIO.setup(BUSY_PIN, GPIO.IN)
+	host.Init()
 
 }
 
 var spibus SPIbus
 
 func initSPI() {
+	//     SPI.max_speed_hz = 2000000
+	//     SPI.mode = 0b00
+	// # SPI device, bus = 0, device = 0
+	// SPI = spidev.SpiDev(0, 0)
+	// if err := embd.InitSPI(); err != nil {
+	// 	log.Println("Unable to Init SPI ", err)
+	// }
+	// spibus = embd.NewSPIBus(embd.SPIMode0, channel, speed, bpw, delay)
+
+	// Configure SPI settings (mode 0, 8 bits per word)
+
 	spibus.Init()
 
 }
 
 func writeCmd(cmd byte) {
-	DigitalWrite(DC_PIN, gpio.Low)
-	spibus.Write([]byte{cmd})
+	// if err := embd.DigitalWrite(DC_PIN, embd.Low); err == nil {
+	if err := DigitalWrite(DC_PIN, gpio.Low); err == nil {
+		// spibus.Write([]byte{cmd})
+		// defSPI.Write()
+		if _, e := spibus.Write([]byte{cmd}); e != nil {
+			log.Printf("SPI Write Error : %v", e)
+		}
+
+	} else {
+		log.Println("Error writeCmd ", err)
+	}
+
 }
 
 func writeData(data ...byte) {
-	DigitalWrite(DC_PIN, gpio.High)
-	spibus.Write(data)
+
+	// if err := embd.DigitalWrite(DC_PIN, embd.High); err == nil {
+	if err := DigitalWrite(DC_PIN, gpio.High); err == nil {
+		if _, e := spibus.Write(data); e != nil {
+			log.Printf("SPI Write Error : %v", e)
+		}
+
+	} else {
+		log.Println("Error writeData ", err)
+	}
 
 }
 

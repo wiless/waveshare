@@ -9,7 +9,7 @@ var BUSY_PIN = 24 // GPIO_24
 
 const (
 	channel = 0
-	speed   = 2000000
+	speed   = 2000000 // 2MHz
 	bpw     = 8
 	delay   = 0
 )

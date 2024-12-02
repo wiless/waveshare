@@ -47,10 +47,9 @@ func LoadEPDBin(rawbytes []byte) image.Gray {
 	b := img.Bounds()
 	R, C := b.Max.Y, b.Max.X
 	fmt.Printf("\n = [rows x cols] = %d,%d \n", R, C)
-
 	cnt := 0
 	for r := 0; r < R; r++ {
-		fmt.Printf("\n Row %03d : ", r)
+		// fmt.Printf("\n Row %03d : ", r)
 
 		for c := 0; c < C; c++ {
 
@@ -58,7 +57,7 @@ func LoadEPDBin(rawbytes []byte) image.Gray {
 			clr.Y = uint8(rawbytes[cnt])
 			// clr := img.GrayAt(c, r).Y
 			img.SetGray(c, r, clr)
-			fmt.Printf("%08b", clr.Y)
+			// fmt.Printf("%08b", clr.Y)
 			cnt++
 		}
 
